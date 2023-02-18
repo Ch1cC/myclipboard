@@ -25,7 +25,7 @@ func Set(key interface{}, value interface{}, exp time.Duration) {
 
 func postData(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	Set(time.Now().UnixNano(), r.Form.Get("data"), duration)
+	Set(time.Now().UnixMicro(), r.Form.Get("data"), duration)
 	w.Header().Set("content-type", "text/json")
 	jsonobj := make(map[int64]interface{})
 	kV.Range(func(k interface{}, v interface{}) bool {
