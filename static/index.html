@@ -9,22 +9,19 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
 
 <body>
-<div class="input-group flex-nowrap" style="width: 70%;
-    margin-top: 0%;
-    padding: 5%;">
-    <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="addon-wrapping">
-    <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="submit()">提交</button>
-</div>
-<table class="table">
-    <thead>
-    <tr>
-        <th scope="col">#</th>
-        <th scope="col">Unix</th>
-        <th scope="col">Msg</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!--<tr>
+    <div class="input-group flex-nowrap" style="padding: 5%;">
+        <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="addon-wrapping">
+        <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="submit()">提交</button>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Msg</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--<tr>
 <th scope="row">1</th>
 <td>Mark</td>
 <td>Otto</td>
@@ -34,33 +31,43 @@
 <td>Jacob</td>
 <td>Thornton</td>
 </tr>-->
-    </tbody>
-</table>
+        </tbody>
+    </table>
 </body>
 <script>
-    var tableRef = document.getElementsByTagName('tbody')[0];
-    let xhr = new XMLHttpRequest();
-    xhr.open('get', 'http://127.0.0.1:9090/get');
-    xhr.send();
-    xhr.onload = function () {
-        myJson = JSON.parse(xhr.responseText)
-        for (var key in myJson) {
+    const tableRef = document.getElementsByTagName('tbody')[0];
+
+    function render(text) {
+        while (tableRef.firstChild) {
+            tableRef.removeChild(tableRef.firstChild);
+        }
+        const myJson = JSON.parse(text);
+        for (const key in myJson) {
             tableRef.insertRow().innerHTML =
-                "<th scope='row'></th>" +
-                "<td>" + key + "</td>" +
+                "<th scope='row'>" + key + "</th>" +
                 "<td>" + myJson[key] + "</td>"
         }
     }
 
     function submit() {
-        let xhr = new XMLHttpRequest();
-        xhr.open('post', 'http://127.0.0.1:9090/post');
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-        xhr.send('data=' + document.getElementsByTagName('input')[0].value);
+        request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
+    }
+
+    function request(method, path, send, headerK, headerV) {
+        const xhr = new XMLHttpRequest();
+        xhr.open(method, path);
+        if (headerK) {
+            xhr.setRequestHeader(headerK, headerV)
+        }
+        xhr.send(send);
         xhr.onload = function () {
-            location.reload();
+            console.log(xhr.responseText)
+            render(xhr.responseText)
         }
     }
+
+    request('get', 'get');
+    setInterval(request, 5000, 'get', 'get');
 </script>
 
 </html>
