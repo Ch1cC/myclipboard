@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+
+<head>
+    <meta charset="UTF-8">
+    <title>我的剪贴板</title>
+</head>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+
+<body>
+<div class="input-group flex-nowrap" style="width: 70%;
+    margin-top: 0%;
+    padding: 5%;">
+    <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="addon-wrapping">
+    <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="submit()">提交</button>
+</div>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Unix</th>
+        <th scope="col">Msg</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!--<tr>
+<th scope="row">1</th>
+<td>Mark</td>
+<td>Otto</td>
+</tr>
+<tr>
+<th scope="row">2</th>
+<td>Jacob</td>
+<td>Thornton</td>
+</tr>-->
+    </tbody>
+</table>
+</body>
+<script>
+    var tableRef = document.getElementsByTagName('tbody')[0];
+    let xhr = new XMLHttpRequest();
+    xhr.open('get', 'http://127.0.0.1:9090/get');
+    xhr.send();
+    xhr.onload = function () {
+        myJson = JSON.parse(xhr.responseText)
+        for (var key in myJson) {
+            tableRef.insertRow().innerHTML =
+                "<th scope='row'></th>" +
+                "<td>" + key + "</td>" +
+                "<td>" + myJson[key] + "</td>"
+        }
+    }
+
+    function submit() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('post', 'http://127.0.0.1:9090/post');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+        xhr.send('data=' + document.getElementsByTagName('input')[0].value);
+        xhr.onload = function () {
+            location.reload();
+        }
+    }
+</script>
+
+</html>
