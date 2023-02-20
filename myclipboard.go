@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 )
@@ -14,6 +15,11 @@ var (
 	kV       sync.Map
 	duration time.Duration
 )
+
+type clipboard struct {
+	UnixMicro int64  `json:"unixMicro"`
+	Msg       string `json:"msg"`
+}
 
 // Set 缓存过期功能实现 类Redis
 func Set(key interface{}, value interface{}, exp time.Duration) {
@@ -25,28 +31,40 @@ func Set(key interface{}, value interface{}, exp time.Duration) {
 
 func postData(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	Set(time.Now().UnixMicro(), r.Form.Get("data"), duration)
+	unixMicro := time.Now().UnixMicro()
+	Set(unixMicro, clipboard{UnixMicro: unixMicro, Msg: r.Form.Get("data")}, duration)
 	w.Header().Set("content-type", "text/json")
-	jsonobj := make(map[int64]interface{})
-	kV.Range(func(k interface{}, v interface{}) bool {
-		jsonobj[k.(int64)] = v
-		return true
-	})
-	msg, _ := json.Marshal(jsonobj)
-	result := string(msg)
-	fmt.Fprintf(w, result) // 这个写入到 w 的是输出到客户端的
+	msg, _ := json.Marshal(buildJson())
+	fmt.Fprintf(w, string(msg)) // 这个写入到 w 的是输出到客户端的
 }
 func getData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/json")
-	jsonobj := make(map[int64]interface{})
-	kV.Range(func(k interface{}, v interface{}) bool {
-		jsonobj[k.(int64)] = v
-		return true
-	})
-	msg, _ := json.Marshal(jsonobj)
+	msg, _ := json.Marshal(buildJson())
 	fmt.Fprintf(w, string(msg)) // 这个写入到 w 的是输出到客户端的
 }
 
+func buildJson() interface{} {
+	var jsonObj []clipboard
+	var keys []int64
+	//无序的
+	kV.Range(func(k, v interface{}) bool {
+		//取出所有的key
+		keys = append(keys, k.(int64))
+		return true
+	})
+	//转化int64 to int
+	sortKeys := make([]int, len(keys))
+	for i := range sortKeys {
+		sortKeys[i] = int(keys[i])
+	}
+	//倒序
+	sort.Sort(sort.Reverse(sort.IntSlice(sortKeys)))
+	for _, k := range sortKeys {
+		v, _ := kV.Load(int64(k))
+		jsonObj = append(jsonObj, v.(clipboard))
+	}
+	return jsonObj
+}
 func main() {
 	flag.DurationVar(&duration, "duration", time.Minute*15, "过期时间间隔,默认15分钟")
 	http.HandleFunc("/post", postData) // 设置访问的路由
