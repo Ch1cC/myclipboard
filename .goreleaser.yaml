@@ -18,8 +18,12 @@ archives:
     format_overrides:
       - goos:
           windows
+        format: zip
+      - goos:
           linux
-          macOs
+        format: zip
+      - goos:
+          darwin
         format: zip
     builds_info:
       group: root
