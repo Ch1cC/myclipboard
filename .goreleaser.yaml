@@ -10,13 +10,16 @@ checksum:
   name_template: 'checksums.txt'
 archives:
   - replacements:
-      linux: Linux
-      windows: Windows
-      darwin: MacOs
+      linux: linux
+      windows: windows
+      darwin: macOs
       386: i386
       amd64: x86_64
     format_overrides:
-      - goos: windows
+      - goos:
+          windows
+          linux
+          macOs
         format: zip
     builds_info:
       group: root
