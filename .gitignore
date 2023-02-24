@@ -1,3 +1,5 @@
 myclipboard.iml
 .idea
 bin
+.github/workflows/release.yml.bck
+.goreleaser.yaml
