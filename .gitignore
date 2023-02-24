@@ -1,5 +1,4 @@
 myclipboard.iml
 .idea
 bin
-release.yml.bck
-.goreleaser.yaml
+actions.bak
