@@ -24,7 +24,7 @@ get_version() {
 }
 
 download_myclipboard() {
-  DOWNLOAD_LINK="https://github.com/Ch1cC/myclipboard/releases/download/$RELEASE_VERSION/myclipboard_${RELEASE_VERSION}_linux_x86_64.zip"
+  DOWNLOAD_LINK="https://github.com/Ch1cC/myclipboard/releases/download/$RELEASE_VERSION/myclipboard-${RELEASE_VERSION}-linux-amd64.zip"
   echo "Downloading myclipboard archive: $DOWNLOAD_LINK"
   if ! curl -x "${PROXY}" -R -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
     echo 'error: Download failed! Please check your network or try again.'

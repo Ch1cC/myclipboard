@@ -20,5 +20,5 @@ jobs:
           goarch: ${{ matrix.goarch }}
           #          asset_name: ${{binary_name}}-${{ matrix.goos }}-${{ matrix.goarch }}
           ldflags: -s -w
-          extra_files: README.md
+          #          extra_files: README.md
           compress_assets: zip
