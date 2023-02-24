@@ -47,7 +47,7 @@
             tableRef.insertRow().innerHTML =
                 "<th scope='row'>" + new Date(item.unixMicro / 1000).toLocaleString() + "</th>" +
                 `<td style="width: 70%;">${item.msg}</td>` +
-                `<span>
+                `<span class="d-grid gap-2">
                 <button class="btn btn-primary" type="button" onclick="copy(this)" data-msg='${item.msg}' data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
                 </span>`
         }
