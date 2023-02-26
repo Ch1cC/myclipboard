@@ -42,7 +42,6 @@
             tableRef.removeChild(tableRef.firstChild);
         }
         const myJson = JSON.parse(text);
-        console.log(myJson)
         for (const item of myJson) {
             tableRef.insertRow().innerHTML =
                 "<th scope='row'>" + new Date(item.unixMicro / 1000).toLocaleString() + "</th>" +
@@ -60,11 +59,12 @@
     }
 
     function submit() {
-        request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
+        // request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
+        ws.send(document.getElementsByTagName('input')[0].value)
     }
 
+
     function request(method, path, send, headerK, headerV) {
-        let result;
         const xhr = new XMLHttpRequest();
         xhr.open(method, path);
         if (headerK) {
@@ -76,7 +76,22 @@
         }
     }
 
-    request('get', 'get')
+    const ws = new WebSocket('ws://' + window.location.host + '/ws');
+    ws.onmessage = function (e) {
+        render(e.data)
+    };
+    ws.onopen = function (e) {
+        console.log('开启了')
+    }
+    ws.onerror = function (e) {
+        // console.log(e)
+        console.log('错误了')
+    }
+    ws.onclose = function (e) {
+        // console.log(e)
+        console.log('关闭了')
+    }
+    // request('get', 'get')
     // setInterval(request, 10000, 'get', 'get');
 </script>
 

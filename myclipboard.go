@@ -1,78 +1,44 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"myclipboard/clipboard"
+	"myclipboard/config"
+	"myclipboard/convert"
+	"myclipboard/ws"
 	"net/http"
-	"sort"
-	"sync"
 	"time"
 )
 
-var (
-	kV       sync.Map
-	duration time.Duration
-)
+// Put 缓存过期功能实现 类Redis
 
-type clipboard struct {
-	UnixMicro int64  `json:"unixMicro"`
-	Msg       string `json:"msg"`
-}
-
-// Set 缓存过期功能实现 类Redis
-func Set(key interface{}, value interface{}, exp time.Duration) {
-	kV.Store(key, value)
-	time.AfterFunc(exp, func() {
-		kV.Delete(key)
-	})
-}
-
-func postData(w http.ResponseWriter, r *http.Request) {
+/*func postData(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	unixMicro := time.Now().UnixMicro()
-	Set(unixMicro, clipboard{UnixMicro: unixMicro, Msg: r.Form.Get("data")}, duration)
+	convert.Put(unixMicro, clipboard.Clipboard{UnixMicro: unixMicro, Msg: r.Form.Get("data")}, config.Duration)
 	w.Header().Set("content-type", "text/json")
-	msg, _ := json.Marshal(buildJson())
+	msg, _ := json.Marshal(convert.BuildJson())
 	fmt.Fprintf(w, string(msg)) // 这个写入到 w 的是输出到客户端的
 }
 func getData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/json")
-	msg, _ := json.Marshal(buildJson())
+	msg, _ := json.Marshal(convert.BuildJson())
 	fmt.Fprintf(w, string(msg)) // 这个写入到 w 的是输出到客户端的
-}
+}*/
 
-func buildJson() interface{} {
-	var jsonObj []clipboard
-	var keys []int64
-	//无序的
-	kV.Range(func(k, v interface{}) bool {
-		//取出所有的key
-		keys = append(keys, k.(int64))
-		return true
-	})
-	//转化int64 to int
-	sortKeys := make([]int, len(keys))
-	for i := range sortKeys {
-		sortKeys[i] = int(keys[i])
-	}
-	//倒序
-	sort.Sort(sort.Reverse(sort.IntSlice(sortKeys)))
-	for _, k := range sortKeys {
-		v, _ := kV.Load(int64(k))
-		jsonObj = append(jsonObj, v.(clipboard))
-	}
-	return jsonObj
-}
 func main() {
-	flag.DurationVar(&duration, "duration", time.Minute*15, "过期时间间隔,默认15分钟")
-	http.HandleFunc("/post", postData) // 设置访问的路由
-	http.HandleFunc("/get", getData)   // 设置访问的路由
+	flag.DurationVar(&config.Duration, "duration", time.Minute*15, "过期时间间隔,默认15分钟")
+	/*http.HandleFunc("/post", postData)       // 设置访问的路由
+	http.HandleFunc("/get", getData)         // 设置访问的路由*/
+	http.HandleFunc("/ws", ws.SocketHandler) // 设置访问的路由
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	fmt.Println("启动在127.0.0.1:9090")
 	flag.Parse()
-	fmt.Printf("过期时间间隔设置为%s\n", duration)
+	fmt.Printf("过期时间间隔设置为%s\n", config.Duration)
+	convert.KV.Store(time.Now().UnixMicro(), clipboard.Clipboard{UnixMicro: time.Now().UnixMicro(), Msg: "欢迎使用"})
+	convert.KV.Store(time.Now().UnixMicro()+1, clipboard.Clipboard{UnixMicro: time.Now().UnixMicro(), Msg: "过期时间间隔为" + config.Duration.String()})
 	err := http.ListenAndServe("127.0.0.1:9090", nil) // 设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
