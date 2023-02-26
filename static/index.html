@@ -76,8 +76,8 @@
         }
     }
 
-    protocol = 'ws://'
-    if (window.location.protocol.endsWith('s'))
+    let protocol = 'ws://'
+    if (window.location.protocol === 'https:')
         protocol = 'wss://'
     const ws = new WebSocket(protocol + window.location.host + window.location.pathname + 'ws');
     ws.onmessage = function (e) {
