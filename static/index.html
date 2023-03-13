@@ -10,7 +10,7 @@
 </head>
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
 
-<body>
+<body style="overflow-x: hidden;">
     <div class="input-group flex-nowrap" style="padding: 5%;">
         <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="addon-wrapping">
         <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="submit()">提交</button>
@@ -46,8 +46,8 @@
         const myJson = JSON.parse(text);
         for (const item of myJson) {
             tableRef.insertRow().innerHTML =
-                "<th scope='row'>" + new Date(item.unixMicro / 1000).toLocaleString() + "</th>" +
-                `<td style="width: 70%;">${item.msg}</td>` +
+                "<th scope='row' style='width:1%'>" + new Date(item.unixMicro / 1000).toLocaleString() + "</th>" +
+                `<td style="">${item.msg}</td>` +
                 `<span class="d-grid gap-2">
                 <button class="btn btn-primary" type="button" onclick="copy(this)" data-msg='${item.msg}' data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
                 </span>`
@@ -95,9 +95,9 @@
     ws.onclose = function (e) {
         // console.log(e)
         console.log('关闭了')
+        alert('与服务器连接已关闭')
     }
     // request('get', 'get')
     // setInterval(request, 10000, 'get', 'get');
 </script>
-
 </html>
