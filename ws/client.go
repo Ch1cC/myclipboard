@@ -3,10 +3,11 @@ package ws
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"myclipboard/clipboard"
 	"myclipboard/config"
 	"myclipboard/convert"
+
+	"github.com/gorilla/websocket"
 
 	"net/http"
 	"time"
@@ -41,7 +42,7 @@ func (client *Client) read() {
 		client.conn.Close()
 	}()
 	//一次从管管中读取的最大长度
-	client.conn.SetReadLimit(maxMsgSize)
+	// client.conn.SetReadLimit(maxMsgSize)
 	//连接中，每隔54秒向客户端发一次ping，客户端返回pong，所以把SetReadDeadline设为60秒，超过60秒后不允许读
 	_ = client.conn.SetReadDeadline(time.Now().Add(pongWait))
 	//心跳
