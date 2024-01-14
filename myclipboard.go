@@ -14,7 +14,9 @@ import (
 )
 
 func main() {
-	flag.DurationVar(&config.Duration, "duration", time.Minute*15, "过期时间间隔,默认15分钟")
+	var port int
+	flag.DurationVar(&config.Duration, "duration", time.Minute*15, "过期时间间隔")
+	flag.IntVar(&port, "port", 9090, "端口")
 	hub := ws.NewHub()
 	go hub.Run()
 	http.HandleFunc("/ws", func(rw http.ResponseWriter, r *http.Request) {
@@ -29,12 +31,12 @@ func main() {
 		t1.Execute(rw, config.Token.String())
 	})
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	fmt.Println("启动在127.0.0.1:9090")
 	flag.Parse()
+	fmt.Printf("127.0.0.1:%d\n", port)
 	fmt.Printf("过期时间间隔设置为%s\n", config.Duration)
 	convert.KV.Store(time.Now().UnixMicro(), clipboard.Clipboard{UnixMicro: time.Now().UnixMicro(), Msg: "欢迎使用"})
 	convert.KV.Store(time.Now().UnixMicro()+1, clipboard.Clipboard{UnixMicro: time.Now().UnixMicro(), Msg: "过期时间间隔为" + config.Duration.String()})
-	err := http.ListenAndServe("127.0.0.1:9090", nil) // 设置监听的端口
+	err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil) // 设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
