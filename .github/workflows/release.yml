@@ -33,3 +33,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      - name: Delete releases and workflows runs
+        uses: ophub/delete-releases-workflows@main
+        with:
+          del_releases: true
+          releases_keep_latest: 1
+          del_workflows: true
+          delete_tags: true
+          workflows_keep_day: 10
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
