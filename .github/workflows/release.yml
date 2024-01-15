@@ -36,7 +36,7 @@ jobs:
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
       - name: Delete releases and workflows runs
-        uses: ophub/delete-releases-workflows@main
+        uses: ophub/delete-releases-workflows@v0.1.0
         with:
           del_releases: true
           releases_keep_latest: 1
