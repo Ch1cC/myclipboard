@@ -4,12 +4,12 @@
 ## 安装
 
 ```bash
-go install 
+go build 
 ```
 
 ## 使用
 ```bash
-go run myclipboard.go
+./myclipboard
 ```
 
 ```
