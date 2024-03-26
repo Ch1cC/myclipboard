@@ -1,3 +1,5 @@
+// math_test.go
+
 package config
 
 import (
@@ -8,59 +10,19 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"math/big"
-	"strconv"
-	"time"
+	"testing"
 )
 
-var (
-	Duration   time.Duration
-	privateKey *rsa.PrivateKey
-	signature  []byte
-	Hash       []byte
-	Token      *big.Int
-)
+func TestAdd(t *testing.T) { // JavaScript 加密后的数据（Base64 编码的字符串）
+	encryptedDataHex := "26115993bec522f9ae913a14719feb448d9b42b0aeaa078f98dbac3ed5bb4f802842312cba719150ad5bbc2a1adb67c90997779337d268004603ca88b62fad7ca84faf0c1c85a6c15d6fdfce55f3cfbbfe2e442bc83008f6263aee46d99f44f75cf8e739b5ee4efeed138824b316588d210848e2e1ce1b0be97d9499134eb96203eb9493db97bcc5ae5939c84c305c40c05e7d52adcd646de5543318b47c38a1a4d96bdb8188e839a164fd6c1fde9eda27dee9d922dd6e1c2c6a3575f5071a12e46ed52cb6d38bf8fd0212c407fd713f79d05a032f00dec0d111505ab82b9ccf1f41b54c4264aa59d167d63182aae5449cb995f12ec2d4c024d6dee1d8011686" // 将此处替换为实际的加密后的数据
 
-//	func ConfigRsa() {
-//		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-//		if err != nil {
-//			panic(err)
-//		}
-//		// 将publicKey转换为PKIX, ASN.1 DER格式
-//		if derPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey); err != nil {
-//			fmt.Println(err)
-//			fmt.Printf("转换失败\n")
-//		} else {
-//			// 设置PEM编码结构
-//			block := pem.Block{
-//				Type:  "RSA PUBLIC KEY",
-//				Bytes: derPkix,
-//			}
-//			// 将publicKey以字符串形式返回给javascript
-//			PublicKeyString = string(pem.EncodeToMemory(&block))
-//		}
-//	}
-func ConfigRandom() {
-	random, _ := rand.Int(rand.Reader, big.NewInt(1000))
-	Token = random
-}
+	// 将十六进制格式的字符串解码为字节数组
+	encryptedData, err := hex.DecodeString(encryptedDataHex)
+	if err != nil {
+		fmt.Println("Error decoding hex string:", err)
+		return
+	}
 
-//	func ConfigHash() string {
-//		random, _ := rand.Int(rand.Reader, big.NewInt(1000))
-//		// 对消息进行哈希
-//		hash := sha256.Sum256(random.Bytes())
-//		// hash = hash[:]
-//		localSignature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
-//		if err != nil {
-//			fmt.Println("Error signing:", err)
-//			return ""
-//		}
-//		signature = localSignature
-//		hashStr := hex.EncodeToString(hash[:])
-//		return hashStr
-//	}
-func init() {
-	// configECC()
 	// 加载私钥
 	privateKeyPEM := []byte(`
 -----BEGIN RSA PRIVATE KEY-----
@@ -97,38 +59,67 @@ C5zQCQYrICnLj6xQ3qla8aX2fLqy6pObVLG3ajZ0att+Rdfip8U=
 		return
 	}
 
-	localPrivateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		fmt.Println("Error parsing private key:", err)
 		return
 	}
-	privateKey = localPrivateKey
-}
-func Verify(encryptedDataHex string) bool {
-	// 将十六进制格式的字符串解码为字节数组
-	encryptedData, err := hex.DecodeString(encryptedDataHex)
-	if err != nil {
-		fmt.Println("Error decoding hex string:", err)
-		return false
-	}
+
+	// 解密数据
 	decryptedData, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, encryptedData, nil)
 	if err != nil {
 		fmt.Println("Error decrypting data:", err)
-		return false
+		return
 	}
-	token, _ := strconv.Atoi(string(decryptedData))
-	second := time.Now().Unix()
-	return second-int64(token) < 5
+
+	// 打印解密后的数据
+	fmt.Println("Decrypted data:", decryptedData)
 }
 
-// func configECC() {
-// 	// 选择椭圆曲线
-// 	curve := elliptic.P256()
-// 	// 生成私钥
-// 	localPrivateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
-// 	if err != nil {
-// 		fmt.Println("Error generating private key:", err)
-// 		return
-// 	}
-// 	privateKey = localPrivateKey
-// }
+func TestGen(t *testing.T) {
+	// 生成 RSA 密钥对
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		fmt.Println("Error generating RSA private key:", err)
+		return
+	}
+
+	// 将私钥转换为 PKCS#1 DER 编码
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+
+	// 创建私钥的 PEM 块
+	privateKeyPEM := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	}
+
+	// 将私钥 PEM 块进行编码
+	privateKeyPEMEncoded := pem.EncodeToMemory(privateKeyPEM)
+
+	// 将私钥打印出来
+	fmt.Println("Private Key:")
+	fmt.Println(string(privateKeyPEMEncoded))
+
+	// 从私钥中提取公钥
+	publicKey := &privateKey.PublicKey
+
+	// 将公钥进行 DER 编码
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		fmt.Println("Error marshaling public key:", err)
+		return
+	}
+
+	// 创建公钥的 PEM 块
+	publicKeyPEM := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	}
+
+	// 将公钥 PEM 块进行编码
+	publicKeyPEMEncoded := pem.EncodeToMemory(publicKeyPEM)
+
+	// 将公钥打印出来
+	fmt.Println("Public Key:")
+	fmt.Println(string(publicKeyPEMEncoded))
+}

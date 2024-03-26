@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"myclipboard/clipboard"
 	"myclipboard/config"
@@ -21,14 +20,10 @@ func main() {
 	go hub.Run()
 	http.HandleFunc("/ws", func(rw http.ResponseWriter, r *http.Request) {
 		ws.ServeWs(hub, rw, r)
-	}) // 设置访问的路由
+	})
+	// 设置访问的路由
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		t1, err := template.ParseFiles("static/index.html")
-		if err != nil {
-			panic(err)
-		}
-		config.ConfigRandom()
-		t1.Execute(rw, config.Token.String())
+		http.ServeFile(rw, r, "static/index.html")
 	})
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	flag.Parse()
