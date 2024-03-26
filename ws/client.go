@@ -96,7 +96,8 @@ func (client *Client) read() {
 	}
 }
 
-/**
+/*
+*
 存储数据
 */
 func put(message []byte) {
@@ -104,7 +105,7 @@ func put(message []byte) {
 	convert.Put(unixMicro, clipboard.Clipboard{UnixMicro: unixMicro, Msg: string(message)}, config.Duration)
 }
 
-//从hub的broadcast那儿读限数据，写到websocket连接里面去
+// 从hub的broadcast那儿读限数据，写到websocket连接里面去
 func (client *Client) write() {
 	//给前端发心跳，看前端是否还存活
 	ticker := time.NewTicker(pingPeriod)
@@ -154,12 +155,10 @@ func (client *Client) write() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	token := r.FormValue("token")
-
-	if token != config.Token.String() {
+	if !config.Verify(token) {
 		remoteAddr, _ := getIP(r)
 		loger.Printf("connect to client %s\n", remoteAddr)
-		loger.Printf("错误的Token %s \n", token)
-		loger.Printf("合法的Token %s \n", config.Token.String())
+		loger.Printf("错误的token %s \n", token)
 		return
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -167,21 +166,6 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("upgrade error: %v\n", err)
 		return
 	}
-	/*// 解码base64字符串
-	bytes, err := base64.StdEncoding.DecodeString(ciphertext)
-	if err != nil {
-		fmt.Println(err)
-		panic(err)
-	}
-	// 解密
-	plaintext, e := rsa.DecryptPKCS1v15(
-		rand.Reader, config.PrivateKey, bytes,
-	)
-	if err != nil {
-		fmt.Println(e)
-		panic(e)
-	}
-	fmt.Println(plaintext)*/
 	fmt.Printf("connect to client %s\n", conn.RemoteAddr().String())
 	//每来一个前端请求，就会创建一个client
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
