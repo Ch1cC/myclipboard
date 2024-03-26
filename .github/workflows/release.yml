@@ -3,9 +3,7 @@
 
 name: Release
 on:
-  push:
-    tags:
-      - "*"
+  pull_request:
 
 permissions:
   contents: write
