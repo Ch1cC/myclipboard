@@ -1,0 +1,35 @@
+name: Auto Tag
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    tag:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Set up Git
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+
+            - name: Check if tag exists
+              id: check_tag
+              run: |
+                  if git rev-parse "${{ github.run_number }}" >/dev/null 2>&1; then
+                    echo "::set-output name=tag_exists::true"
+                  else
+                    echo "::set-output name=tag_exists::false"
+                  fi
+
+            - name: Create tag
+              if: steps.check_tag.outputs.tag_exists == 'false'
+              run: git tag -a "${{ github.run_number }}" -m "Auto-generated tag for build ${{ github.run_number }}"
+
+            - name: Push tag
+              if: steps.check_tag.outputs.tag_exists == 'false'
+              run: git push origin "${{ github.run_number }}"
