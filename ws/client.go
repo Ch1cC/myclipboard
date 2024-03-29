@@ -155,7 +155,7 @@ func (client *Client) write() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	token := r.FormValue("token")
-	if !config.Verify(token) {
+	if !config.VerifyRsa(token) {
 		remoteAddr, _ := getIP(r)
 		loger.Printf("connect to client %s\n", remoteAddr)
 		loger.Printf("错误的token %s \n", token)
