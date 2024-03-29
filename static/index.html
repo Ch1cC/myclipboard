@@ -11,7 +11,8 @@
         <title>我的剪贴板</title>
     </head>
     <script src="static/bootstrap.bundle.min.js"></script>
-
+    <script src="static/wasm_exec_tiny.js"></script>
+    <script src="static/index.js"></script>
     <body style="overflow-x: hidden">
         <div class="input-group flex-nowrap" style="padding: 5%">
             <input
@@ -37,23 +38,11 @@
                     <th scope="col">内容</th>
                 </tr>
             </thead>
-            <tbody>
-                <!--<tr>
-<th scope="row">1</th>
-<td>Mark</td>
-<td>Otto</td>
-</tr>
-<tr>
-<th scope="row">2</th>
-<td>Jacob</td>
-<td>Thornton</td>
-</tr>-->
-            </tbody>
+            <tbody></tbody>
         </table>
     </body>
     <script>
         const tableRef = document.getElementsByTagName("tbody")[0];
-
         function render(text) {
             while (tableRef.firstChild) {
                 tableRef.removeChild(tableRef.firstChild);
@@ -90,19 +79,18 @@
             }
         }
 
-        function request(method, path, send, headerK, headerV) {
-            const xhr = new XMLHttpRequest();
-            xhr.open(method, path);
-            if (headerK) {
-                xhr.setRequestHeader(headerK, headerV);
-            }
-            xhr.send(send);
-            xhr.onload = function () {
-                render(xhr.responseText);
-            };
-        }
+        // function request(method, path, send, headerK, headerV) {
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open(method, path);
+        //     if (headerK) {
+        //         xhr.setRequestHeader(headerK, headerV);
+        //     }
+        //     xhr.send(send);
+        //     xhr.onload = function () {
+        //         render(xhr.responseText);
+        //     };
+        // }
         // request('get', 'get')
         // setInterval(request, 10000, 'get', 'get');
     </script>
-    <script src="static/index.js"></script>
 </html>

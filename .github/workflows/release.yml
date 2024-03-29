@@ -3,11 +3,11 @@
 
 name: Release
 on:
-    push:
-        tags:
-            - "*"
+    release:
+        types: [created]
 permissions:
     contents: write
+    packages: write
 
 jobs:
     build:
