@@ -170,10 +170,39 @@
                     var blob = item.getAsFile();
                     var reader = new FileReader();
                     reader.onload = function (event) {
-                        // 创建图片元素并添加到内容中
                         var img = new Image();
+                        img.onload = function () {
+                            // 创建一个 Canvas 元素
+                            var canvas = document.createElement("canvas");
+                            var ctx = canvas.getContext("2d");
+
+                            // 将图片绘制到 Canvas 上
+                            canvas.width = img.width; // 设置压缩后的宽度
+                            canvas.height = img.height; // 根据宽度等比例调整高度
+                            ctx.drawImage(
+                                img,
+                                0,
+                                0,
+                                canvas.width,
+                                canvas.height
+                            );
+
+                            // 将 Canvas 中的图像数据转换为 Base64 编码字符串
+                            var compressedDataUrl = canvas.toDataURL(
+                                "image/jpeg",
+                                0.2
+                            ); // 第二个参数是图片质量，取值范围为 0-1
+
+                            // 创建一个新的 Image 元素，并设置其 src 属性为压缩后的图片
+                            var compressedImg = new Image();
+                            compressedImg.src = compressedDataUrl;
+
+                            // 清空 div 中的内容
+                            content.innerHTML = "";
+
+                            content.appendChild(compressedImg);
+                        };
                         img.src = event.target.result;
-                        content.appendChild(img);
                     };
                     reader.readAsDataURL(blob);
                     break; // 只处理第一张图片
