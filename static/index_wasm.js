@@ -43,7 +43,7 @@ function webSocket(encryptedData) {
     webSocket.onclose = function (e) {
         // console.log(e)
         console.log("关闭了");
-        // window.location.reload();
+        window.location.reload();
     };
 }
 function send(params) {

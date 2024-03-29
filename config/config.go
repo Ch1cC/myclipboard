@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -13,55 +15,10 @@ import (
 )
 
 var (
-	Duration   time.Duration
-	privateKey *rsa.PrivateKey
-	signature  []byte
-	Hash       []byte
-	Token      *big.Int
-)
-
-//	func ConfigRsa() {
-//		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-//		if err != nil {
-//			panic(err)
-//		}
-//		// 将publicKey转换为PKIX, ASN.1 DER格式
-//		if derPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey); err != nil {
-//			fmt.Println(err)
-//			fmt.Printf("转换失败\n")
-//		} else {
-//			// 设置PEM编码结构
-//			block := pem.Block{
-//				Type:  "RSA PUBLIC KEY",
-//				Bytes: derPkix,
-//			}
-//			// 将publicKey以字符串形式返回给javascript
-//			PublicKeyString = string(pem.EncodeToMemory(&block))
-//		}
-//	}
-func ConfigRandom() {
-	random, _ := rand.Int(rand.Reader, big.NewInt(1000))
-	Token = random
-}
-
-//	func ConfigHash() string {
-//		random, _ := rand.Int(rand.Reader, big.NewInt(1000))
-//		// 对消息进行哈希
-//		hash := sha256.Sum256(random.Bytes())
-//		// hash = hash[:]
-//		localSignature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
-//		if err != nil {
-//			fmt.Println("Error signing:", err)
-//			return ""
-//		}
-//		signature = localSignature
-//		hashStr := hex.EncodeToString(hash[:])
-//		return hashStr
-//	}
-func init() {
-	// configECC()
-	// 加载私钥
-	privateKeyPEM := []byte(`
+	Duration      time.Duration
+	privateKey    *rsa.PrivateKey
+	Token         *big.Int
+	privateKeyPEM = []byte(`
 -----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEA64gDlAFUlVNc/Fm1dN4knjxrok2Y6C4mmnt0FDrC/jYO+pxz
 Z6mPkVS/JQuweHmrYVkQ6RJSXKew8I+2ukJcNy+N43ZuSPDqCHVECQlQkClTAug1
@@ -90,6 +47,14 @@ nAW3AoGAKQZ0u1nd8YAUH1T2rHR+21z7BUneKnhXqZ21oYynxDAfpgdhHYSQFv9P
 C5zQCQYrICnLj6xQ3qla8aX2fLqy6pObVLG3ajZ0att+Rdfip8U=
 -----END RSA PRIVATE KEY-----
 	`)
+)
+
+func ConfigRandom() {
+	random, _ := rand.Int(rand.Reader, big.NewInt(1000))
+	Token = random
+}
+
+func init() {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
 		fmt.Println("Error decoding PEM block")
@@ -103,7 +68,7 @@ C5zQCQYrICnLj6xQ3qla8aX2fLqy6pObVLG3ajZ0att+Rdfip8U=
 	}
 	privateKey = localPrivateKey
 }
-func Verify(encryptedDataHex string) bool {
+func VerifyRsa(encryptedDataHex string) bool {
 	// 将十六进制格式的字符串解码为字节数组
 	encryptedData, err := hex.DecodeString(encryptedDataHex)
 	if err != nil {
@@ -118,14 +83,49 @@ func Verify(encryptedDataHex string) bool {
 	return decryptedData != nil
 }
 
-// func configECC() {
-// 	// 选择椭圆曲线
-// 	curve := elliptic.P256()
-// 	// 生成私钥
-// 	localPrivateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+//TODO
+// func VerifyEcc(encryptedDataHex string) bool {
+// 	encryptedData, err := hex.DecodeString(encryptedDataHex)
 // 	if err != nil {
-// 		fmt.Println("Error generating private key:", err)
-// 		return
+// 		fmt.Println("Error decoding hex string:", err)
+// 		return false
 // 	}
-// 	privateKey = localPrivateKey
+// 	decryptedData, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, encryptedData, nil)
+// 	if err != nil {
+// 		fmt.Println("Error decrypting data:", err)
+// 		return false
+// 	}
+// 	return decryptedData != nil
 // }
+
+func configECC() {
+	// 选择椭圆曲线
+	curve := elliptic.P256()
+
+	// 生成私钥
+	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		fmt.Println("Error generating private key:", err)
+		return
+	}
+
+	// 获取公钥
+	publicKey := &privateKey.PublicKey
+
+	// 原始数据
+	message := []byte("Hello, world!")
+
+	// 对消息进行哈希
+	hash := sha256.Sum256(message)
+
+	// 使用私钥对哈希值进行签名
+	signature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
+	if err != nil {
+		fmt.Println("Error signing:", err)
+		return
+	}
+
+	// 使用公钥验证签名
+	valid := ecdsa.VerifyASN1(publicKey, hash[:], signature)
+	fmt.Println("Signature verified:", valid)
+}

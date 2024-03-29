@@ -5,32 +5,79 @@
         content="width=device-width,user-scalable=no,initial-scale=1.0,  maximum-scale=1.0,minimum-scale=1.0"
     />
     <link href="static/bootstrap.min.css" rel="stylesheet" />
-
     <head>
         <meta charset="UTF-8" />
         <title>我的剪贴板</title>
     </head>
     <script src="static/bootstrap.bundle.min.js"></script>
     <script src="static/wasm_exec_tiny.js"></script>
-    <script src="static/index.js"></script>
+    <script src="static/index_wasm.js"></script>
+    <style>
+        img {
+            width: 100%;
+            /* height: 10%; */
+        }
+        /* 自定义样式 */
+        .custom-input-container {
+            width: 100%;
+            position: relative;
+            display: inline-block;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .custom-input-content {
+            min-height: 50px; /* 设置最小高度 */
+            padding: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            outline: none;
+            overflow: hidden;
+        }
+
+        .custom-input-content img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+    </style>
     <body style="overflow-x: hidden">
         <div class="input-group flex-nowrap" style="padding: 5%">
-            <input
+            <div class="container">
+                <div class="">
+                    <!-- 自定义输入框容器 -->
+                    <div
+                        class="custom-input-container"
+                        contenteditable="true"
+                        id="imageContainer"
+                    >
+                        <div
+                            class="custom-input-content"
+                            id="imageContent"
+                            placeholder="Paste image here"
+                            tabindex="0"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+            <!-- <input
                 type="text"
                 class="form-control"
                 placeholder=""
                 aria-label=""
                 aria-describedby="addon-wrapping"
-            />
+            /> -->
+
             <button
-                class="btn btn-outline-secondary"
+                class="btn btn-outline-primary"
                 type="button"
-                id="button-addon2"
                 onclick="submit()"
             >
                 提交
             </button>
         </div>
+
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -55,7 +102,7 @@
                     "</th>" +
                     `<td><div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">${item.msg}</div></td>` +
                     `<span class="d-grid gap-2">
-                <button class="btn btn-primary" type="button" onclick="copy(this)" data-msg='${item.msg}' data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
+                <button class="btn btn-primary" type="button" onclick="copy(this)" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
                 </span>`;
             }
             const popoverTriggerList = document.querySelectorAll(
@@ -67,30 +114,71 @@
         }
 
         function copy(e) {
-            navigator.clipboard.writeText(e.dataset.msg);
-        }
-
-        function submit() {
-            // request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
-            const inputValue = document.getElementsByTagName("input")[0].value;
-            if (inputValue) {
-                send(inputValue);
-                document.getElementsByTagName("input")[0].value = "";
+            const text = e.parentNode.parentNode.children[1].innerText;
+            if (!text.length) {
+                // 获取图片元素
+                // 创建 Blob 对象
+                var blob = base64ToBlob(
+                    e.parentNode.parentNode.children[1].children[0].children[0]
+                        .src
+                );
+                const data = [new ClipboardItem({ ["image/png"]: blob })];
+                // 将 DataTransfer 对象的数据写入剪切板
+                navigator.clipboard.write(data);
+            } else {
+                navigator.clipboard.writeText(text);
             }
         }
+        // 将 Base64 编码字符串转换为 Blob 对象
+        function base64ToBlob(base64) {
+            var binaryString = window.atob(base64.split(",")[1]);
+            var arrayBuffer = new ArrayBuffer(binaryString.length);
+            var uint8Array = new Uint8Array(arrayBuffer);
+            for (var i = 0; i < binaryString.length; i++) {
+                uint8Array[i] = binaryString.charCodeAt(i);
+            }
+            return new Blob([uint8Array], { type: "image/png" });
+        }
+        function submit() {
+            // request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
+            const inputValue =
+                document.getElementById("imageContent").innerHTML;
+            if (inputValue) {
+                send(inputValue);
+                document.getElementById("imageContent").innerHTML = "";
+            }
+        }
+        // 获取输入容器和内容元素
+        var container = document.getElementById("imageContainer");
+        var content = document.getElementById("imageContent");
 
-        // function request(method, path, send, headerK, headerV) {
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open(method, path);
-        //     if (headerK) {
-        //         xhr.setRequestHeader(headerK, headerV);
-        //     }
-        //     xhr.send(send);
-        //     xhr.onload = function () {
-        //         render(xhr.responseText);
-        //     };
-        // }
-        // request('get', 'get')
-        // setInterval(request, 10000, 'get', 'get');
+        // 监听容器的粘贴事件
+        container.addEventListener("paste", function (e) {
+            // 取消默认粘贴行为
+            e.preventDefault();
+
+            // 获取粘贴的数据
+            var items = (e.clipboardData || e.originalEvent.clipboardData)
+                .items;
+
+            // 遍历数据项
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                // 判断是否为图片
+                if (item.type.indexOf("image") !== -1) {
+                    // 读取图片数据并显示在容器中
+                    var blob = item.getAsFile();
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        // 创建图片元素并添加到内容中
+                        var img = new Image();
+                        img.src = event.target.result;
+                        content.appendChild(img);
+                    };
+                    reader.readAsDataURL(blob);
+                    break; // 只处理第一张图片
+                }
+            }
+        });
     </script>
 </html>

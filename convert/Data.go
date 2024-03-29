@@ -9,7 +9,7 @@ import (
 
 var KV sync.Map
 
-func Put(key interface{}, value interface{}, exp time.Duration) {
+func Put(key int64, value interface{}, exp time.Duration) {
 	KV.Store(key, value)
 	time.AfterFunc(exp, func() {
 		KV.Delete(key)

@@ -3,6 +3,8 @@
 package config
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -76,7 +78,7 @@ C5zQCQYrICnLj6xQ3qla8aX2fLqy6pObVLG3ajZ0att+Rdfip8U=
 	fmt.Println("Decrypted data:", decryptedData)
 }
 
-func TestGen(t *testing.T) {
+func TestGenRsa(t *testing.T) {
 	// 生成 RSA 密钥对
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -122,4 +124,76 @@ func TestGen(t *testing.T) {
 	// 将公钥打印出来
 	fmt.Println("Public Key:")
 	fmt.Println(string(publicKeyPEMEncoded))
+}
+
+func TestGenEcc(t *testing.T) {
+	// 选择椭圆曲线
+	curve := elliptic.P256()
+
+	// 生成私钥
+	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		fmt.Println("Error generating private key:", err)
+		return
+	}
+	derBytes, err := x509.MarshalECPrivateKey(privateKey)
+	if err != nil {
+		fmt.Println("Failed to marshal EC private key:", err)
+		return
+	}
+
+	privateKeyPEMEncoded := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: derBytes})
+	// 将私钥打印出来
+	fmt.Println("Private Key:")
+	fmt.Println(string(privateKeyPEMEncoded))
+	// 获取公钥
+	publicKey := &privateKey.PublicKey
+
+	derBytes, err = x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		fmt.Println("Failed to marshal PKIX public key:", err)
+	}
+
+	publicKeyPEMEncoded := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: derBytes})
+	// 将公钥打印出来
+	fmt.Println("Public Key:")
+	fmt.Println(string(publicKeyPEMEncoded))
+	// 原始数据
+	message := []byte("Hello, world!")
+
+	// 对消息进行哈希
+	hash := sha256.Sum256(message)
+
+	// 使用私钥对哈希值进行签名
+	signature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
+	if err != nil {
+		fmt.Println("Error signing:", err)
+		return
+	}
+
+	// 使用公钥验证签名
+	valid := ecdsa.VerifyASN1(publicKey, hash[:], signature)
+	fmt.Println("Signature verified:", valid)
+}
+
+func TestLoadEcc(t *testing.T) {
+	privateKeyPEM := []byte(`
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIDZVje58fmaJGi6n4zXnE28OLEG+0ue5CU763XyTCWCmoAoGCCqGSM49
+AwEHoUQDQgAE67BSDTBuDdu957wRaaKp/v/1Hm7dpIKqz7JPET+2USl2/Pc76OtR
+jsITCrMMUhuB1e9sxS2ElSAYYYVc1I1CYA==
+-----END EC PRIVATE KEY-----
+	`)
+	block, _ := pem.Decode(privateKeyPEM)
+	if block == nil {
+		fmt.Println("no PEM data found in file")
+		return
+	}
+
+	pk, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		fmt.Printf("failed to parse EC private key: %s", err)
+		return
+	}
+	fmt.Println(pk)
 }
