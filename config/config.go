@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 )
 
@@ -116,9 +115,7 @@ func Verify(encryptedDataHex string) bool {
 		fmt.Println("Error decrypting data:", err)
 		return false
 	}
-	token, _ := strconv.Atoi(string(decryptedData))
-	second := time.Now().Unix()
-	return second-int64(token) < 5
+	return decryptedData != nil
 }
 
 // func configECC() {

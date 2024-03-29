@@ -9,6 +9,7 @@ import (
 	"myclipboard/convert"
 	"myclipboard/ws"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -18,14 +19,20 @@ func main() {
 	flag.IntVar(&port, "port", 9090, "端口")
 	hub := ws.NewHub()
 	go hub.Run()
-	http.HandleFunc("/ws", func(rw http.ResponseWriter, r *http.Request) {
-		ws.ServeWs(hub, rw, r)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		ws.ServeWs(hub, w, r)
 	})
 	// 设置访问的路由
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		http.ServeFile(rw, r, "static/index.html")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "static/index.html")
 	})
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "no-cache")
+		if strings.HasSuffix(r.URL.Path, ".wasm") {
+			w.Header().Set("content-type", "application/wasm")
+		}
+		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))).ServeHTTP(w, r)
+	}))
 	flag.Parse()
 	fmt.Printf("127.0.0.1:%d\n", port)
 	fmt.Printf("过期时间间隔设置为%s\n", config.Duration)
