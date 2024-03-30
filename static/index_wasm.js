@@ -34,7 +34,7 @@ function webSocket(encryptedData) {
     };
     webSocket.onopen = function (e) {
         ws = webSocket;
-        console.log("开启了");
+        // console.log("开启了");
     };
     webSocket.onerror = function (e) {
         // console.log(e)
