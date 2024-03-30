@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -76,7 +75,7 @@ func (client *Client) read() {
 	/**
 	第一次进入都要广播现存消息
 	*/
-	data, _ := json.Marshal(convert.BuildJson())
+	data := convert.BuildJson()
 	client.hub.broadcast <- data
 	for {
 		//如果前端主动断开连接，运行会报错，for循环会退出。注册client时，hub中会关闭client.send管道
@@ -90,7 +89,7 @@ func (client *Client) read() {
 			break
 		} else {
 			put(msg)
-			data, _ := json.Marshal(convert.BuildJson())
+			data := convert.BuildJson()
 			client.hub.broadcast <- data
 		}
 	}
@@ -102,7 +101,7 @@ func (client *Client) read() {
 */
 func put(message []byte) {
 	unixMicro := time.Now().UnixMicro()
-	convert.Put(unixMicro, clipboard.Clipboard{UnixMicro: unixMicro, Msg: string(message)}, config.Duration)
+	convert.Put(unixMicro, clipboard.Clipboard{UnixMicro: unixMicro, Msg: message}, config.Duration)
 }
 
 // 从hub的broadcast那儿读限数据，写到websocket连接里面去
@@ -129,7 +128,7 @@ func (client *Client) write() {
 			//10秒内必须把信息写给前端（写到websocket连接里去），否则就关闭连接
 			_ = client.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			//通过NextWriter创建一个新的writer，主要是为了确保上一个writer已经被关闭，即它想写的内容已经flush到conn里去
-			if writer, err := client.conn.NextWriter(websocket.TextMessage); err != nil {
+			if writer, err := client.conn.NextWriter(websocket.BinaryMessage); err != nil {
 				return
 			} else {
 				_, _ = writer.Write(msg)

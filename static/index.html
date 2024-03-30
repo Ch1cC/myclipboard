@@ -12,6 +12,7 @@
     <script src="static/bootstrap.bundle.min.js"></script>
     <script src="static/wasm_exec_tiny.js"></script>
     <script src="static/index_wasm.js"></script>
+    <script src="static/pako.min.js"></script>
     <style>
         img {
             width: 100%;
@@ -65,12 +66,11 @@
         const tableRef = document.getElementsByTagName("tbody")[0];
         // 创建 DOMParser 实例
         var parser = new DOMParser();
-        function render(text) {
+        function render(JSON) {
             while (tableRef.firstChild) {
                 tableRef.removeChild(tableRef.firstChild);
             }
-            const myJson = JSON.parse(text);
-            for (const item of myJson) {
+            for (const item of JSON) {
                 tableRef.insertRow().innerHTML =
                     "<th scope='row'>" +
                     new Date(item.unixMicro / 1000).toLocaleString() +
