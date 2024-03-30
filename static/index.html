@@ -123,20 +123,33 @@
             // 解析 HTML 字符串
             var doc = parser.parseFromString(text, "text/html");
             if (
+                //纯文本
                 !Array.from(doc.body.childNodes).some(
                     (node) => node.nodeType === 1
                 )
             ) {
                 send(text);
+            } else {
+                //判断是否有img.src
+                var img = doc.querySelector("img[src]");
+                // 使用 Fetch API 获取远程图片数据
+                if (img) {
+                    fetch(img.src)
+                        .then((response) => response.blob()) // 将响应数据转换为 Blob 对象
+                        .then((blob) => {
+                            handleImagePaste(blob); // 处理粘贴的图片
+                        })
+                        .catch((error) =>
+                            console.error("Failed to fetch image:", error)
+                        );
+                }
             }
             document.getElementById("imageContainer").textContent = "";
         }
         // 获取输入容器和内容元素
         const container = document.getElementById("imageContainer");
 
-        function handleImagePaste(item) {
-            // 读取图片数据并显示在容器中
-            const blob = item.getAsFile();
+        function handleImagePaste(blob) {
             const reader = new FileReader();
             reader.onload = function (event) {
                 const img = new Image();
@@ -164,6 +177,7 @@
                     // content.innerHTML = "";
 
                     // content.appendChild(compressedImg);
+                    // console.log(compressedImg.outerHTML);
                     send(compressedImg.outerHTML);
                 };
                 img.src = event.target.result;
@@ -188,7 +202,7 @@
                 const item = items[i];
                 // 判断是否为图片
                 if (item.type.indexOf("image") !== -1) {
-                    handleImagePaste(item);
+                    handleImagePaste(item.getAsFile());
                 } else {
                     handleTextPaste(item);
                 }
