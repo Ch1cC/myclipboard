@@ -39,6 +39,6 @@ jobs:
                   delete_releases: true
                   releases_keep_latest: 1
                   delete_workflows: true
-                  delete_tags: true
+                  delete_tags: false
                   workflows_keep_day: 10
                   gh_token: ${{ secrets.GITHUB_TOKEN }}
