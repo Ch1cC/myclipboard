@@ -15,67 +15,40 @@
     <style>
         img {
             width: 100%;
-            /* height: 10%; */
         }
         /* 自定义样式 */
         .custom-input-container {
-            width: 100%;
+            width: 80%;
             position: relative;
             display: inline-block;
             border: 1px solid #ced4da;
             border-radius: 0.25rem;
             overflow: hidden;
+            flex: 1; /* 填充剩余空间 */
+            margin-right: 10px; /* 右边距 */
         }
 
-        .custom-input-content {
-            min-height: 50px; /* 设置最小高度 */
-            padding: 10px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            outline: none;
-            overflow: hidden;
-        }
-
-        .custom-input-content img {
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
+        .flex-container {
+            display: flex;
+            align-items: center;
         }
     </style>
     <body style="overflow-x: hidden">
-        <div class="input-group flex-nowrap" style="padding: 5%">
-            <div class="container">
-                <div class="">
-                    <!-- 自定义输入框容器 -->
-                    <div
-                        class="custom-input-container"
-                        contenteditable="true"
-                        id="imageContainer"
-                    >
-                        <div
-                            class="custom-input-content"
-                            id="imageContent"
-                            placeholder="Paste image here"
-                            tabindex="0"
-                        ></div>
-                    </div>
-                </div>
+        <div class="" style="padding: 5%">
+            <div class="flex-container">
+                <div
+                    class="custom-input-container form-control"
+                    contenteditable="true"
+                    id="imageContainer"
+                ></div>
+                <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    onclick="submit()"
+                >
+                    提交
+                </button>
             </div>
-            <!-- <input
-                type="text"
-                class="form-control"
-                placeholder=""
-                aria-label=""
-                aria-describedby="addon-wrapping"
-            /> -->
-
-            <button
-                class="btn btn-outline-primary"
-                type="button"
-                onclick="submit()"
-            >
-                提交
-            </button>
         </div>
 
         <table class="table table-hover">
@@ -90,6 +63,8 @@
     </body>
     <script>
         const tableRef = document.getElementsByTagName("tbody")[0];
+        // 创建 DOMParser 实例
+        var parser = new DOMParser();
         function render(text) {
             while (tableRef.firstChild) {
                 tableRef.removeChild(tableRef.firstChild);
@@ -102,8 +77,8 @@
                     "</th>" +
                     `<td><div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">${item.msg}</div></td>` +
                     `<span class="d-grid gap-2">
-                <button class="btn btn-primary" type="button" onclick="copy(this)" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
-                </span>`;
+                                  <button class="btn btn-primary" type="button" onclick="copy(this)" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
+                                  </span>`;
             }
             const popoverTriggerList = document.querySelectorAll(
                 '[data-bs-toggle="popover"]'
@@ -114,11 +89,12 @@
         }
 
         function copy(e) {
-            const text = e.parentNode.parentNode.children[1].innerText;
+            const text = e.parentNode.parentNode.children[1].textContent;
+            //如果text节点没文本.代表是图片
             if (!text.length) {
                 // 获取图片元素
                 // 创建 Blob 对象
-                var blob = base64ToBlob(
+                const blob = base64ToBlob(
                     e.parentNode.parentNode.children[1].children[0].children[0]
                         .src
                 );
@@ -131,82 +107,92 @@
         }
         // 将 Base64 编码字符串转换为 Blob 对象
         function base64ToBlob(base64) {
-            var binaryString = window.atob(base64.split(",")[1]);
-            var arrayBuffer = new ArrayBuffer(binaryString.length);
-            var uint8Array = new Uint8Array(arrayBuffer);
-            for (var i = 0; i < binaryString.length; i++) {
+            const binaryString = window.atob(base64.split(",")[1]);
+            const arrayBuffer = new ArrayBuffer(binaryString.length);
+            const uint8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < binaryString.length; i++) {
                 uint8Array[i] = binaryString.charCodeAt(i);
             }
             return new Blob([uint8Array], { type: "image/png" });
         }
-        function submit() {
-            // request('post', 'post', 'data=' + document.getElementsByTagName('input')[0].value, 'Content-Type', 'application/x-www-form-urlencoded')
-            const inputValue =
-                document.getElementById("imageContent").innerHTML;
-            if (inputValue) {
-                send(inputValue);
-                document.getElementById("imageContent").innerHTML = "";
+        function submit(value) {
+            const text = value
+                ? value
+                : document.getElementById("imageContainer").textContent;
+
+            // 解析 HTML 字符串
+            var doc = parser.parseFromString(text, "text/html");
+            if (
+                !Array.from(doc.body.childNodes).some(
+                    (node) => node.nodeType === 1
+                )
+            ) {
+                send(text);
             }
+            document.getElementById("imageContainer").textContent = "";
         }
         // 获取输入容器和内容元素
-        var container = document.getElementById("imageContainer");
-        var content = document.getElementById("imageContent");
+        const container = document.getElementById("imageContainer");
 
+        function handleImagePaste(item) {
+            // 读取图片数据并显示在容器中
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    // 创建一个 Canvas 元素
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    // 将图片绘制到 Canvas 上
+                    canvas.width = img.width; // 设置压缩后的宽度
+                    canvas.height = img.height; // 根据宽度等比例调整高度
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // 将 Canvas 中的图像数据转换为 Base64 编码字符串
+                    const compressedDataUrl = canvas.toDataURL(
+                        "image/jpeg",
+                        0.2
+                    ); // 第二个参数是图片质量，取值范围为 0-1
+
+                    // 创建一个新的 Image 元素，并设置其 src 属性为压缩后的图片
+                    const compressedImg = new Image();
+                    compressedImg.src = compressedDataUrl;
+
+                    // 清空 div 中的内容
+                    // content.innerHTML = "";
+
+                    // content.appendChild(compressedImg);
+                    send(compressedImg.outerHTML);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        function handleTextPaste(item) {
+            item.getAsString(function (text) {
+                submit(text);
+            });
+        }
         // 监听容器的粘贴事件
         container.addEventListener("paste", function (e) {
             // 取消默认粘贴行为
             e.preventDefault();
 
             // 获取粘贴的数据
-            var items = (e.clipboardData || e.originalEvent.clipboardData)
+            const items = (e.clipboardData || e.originalEvent.clipboardData)
                 .items;
-
-            // 遍历数据项
-            for (var i = 0; i < items.length; i++) {
-                var item = items[i];
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
                 // 判断是否为图片
                 if (item.type.indexOf("image") !== -1) {
-                    // 读取图片数据并显示在容器中
-                    var blob = item.getAsFile();
-                    var reader = new FileReader();
-                    reader.onload = function (event) {
-                        var img = new Image();
-                        img.onload = function () {
-                            // 创建一个 Canvas 元素
-                            var canvas = document.createElement("canvas");
-                            var ctx = canvas.getContext("2d");
-
-                            // 将图片绘制到 Canvas 上
-                            canvas.width = img.width; // 设置压缩后的宽度
-                            canvas.height = img.height; // 根据宽度等比例调整高度
-                            ctx.drawImage(
-                                img,
-                                0,
-                                0,
-                                canvas.width,
-                                canvas.height
-                            );
-
-                            // 将 Canvas 中的图像数据转换为 Base64 编码字符串
-                            var compressedDataUrl = canvas.toDataURL(
-                                "image/jpeg",
-                                0.2
-                            ); // 第二个参数是图片质量，取值范围为 0-1
-
-                            // 创建一个新的 Image 元素，并设置其 src 属性为压缩后的图片
-                            var compressedImg = new Image();
-                            compressedImg.src = compressedDataUrl;
-
-                            // 清空 div 中的内容
-                            content.innerHTML = "";
-
-                            content.appendChild(compressedImg);
-                        };
-                        img.src = event.target.result;
-                    };
-                    reader.readAsDataURL(blob);
-                    break; // 只处理第一张图片
+                    handleImagePaste(item);
+                } else {
+                    handleTextPaste(item);
                 }
+                break;
             }
         });
     </script>
