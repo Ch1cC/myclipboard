@@ -18,8 +18,6 @@ var compressed bytes.Buffer
 
 func Put(key int64, value interface{}, exp time.Duration) {
 	KV.Store(key, value)
-	fmt.Println("put key:", key)
-	fmt.Println("put value:", value)
 	time.AfterFunc(exp, func() {
 		KV.Delete(key)
 	})
