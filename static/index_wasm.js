@@ -65,7 +65,8 @@ function submit(value) {
     var doc = parser.parseFromString(text, "text/html");
     if (
         //纯文本
-        !Array.from(doc.body.childNodes).some((node) => node.nodeType === 1)
+        !Array.from(doc.body.childNodes).some((node) => node.nodeType === 1) &&
+        text
     ) {
         send(text);
     } else {
