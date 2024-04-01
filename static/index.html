@@ -8,12 +8,13 @@
     <head>
         <meta charset="UTF-8" />
         <title>我的剪贴板</title>
-        <script>
+        <script async>
             "use strict";
         </script>
-        <script src="static/bootstrap.bundle.min.js"></script>
         <script src="static/wasm_exec_tiny.js"></script>
+        <script src="static/bootstrap.bundle.min.js"></script>
         <script src="static/pako.min.js"></script>
+        <script src="static/index_wasm.js" defer></script>
     </head>
     <style>
         img {
@@ -63,29 +64,25 @@
             </thead>
             <tbody></tbody>
         </table>
-        <script src="static/index_wasm.js"></script>
         <script>
             const go = new Go();
-            const WASM_URL = "static/wasm.wasm";
+            const wasm = fetch("static/wasm.wasm");
             if ("instantiateStreaming" in WebAssembly) {
-                WebAssembly.instantiateStreaming(
-                    fetch(WASM_URL),
-                    go.importObject
-                ).then(function (obj) {
-                    go.run(obj.instance);
-                    webSocket(encryptedFunc());
-                });
+                WebAssembly.instantiateStreaming(wasm, go.importObject).then(
+                    function (obj) {
+                        go.run(obj.instance);
+                        webSocket(encryptedFunc());
+                    }
+                );
             } else {
-                fetch(WASM_URL)
-                    .then((resp) => resp.arrayBuffer())
-                    .then((bytes) =>
-                        WebAssembly.instantiate(bytes, go.importObject).then(
-                            function (obj) {
-                                go.run(obj.instance);
-                                webSocket(encryptedFunc());
-                            }
-                        )
-                    );
+                wasm.then((resp) => resp.arrayBuffer()).then((bytes) =>
+                    WebAssembly.instantiate(bytes, go.importObject).then(
+                        function (obj) {
+                            go.run(obj.instance);
+                            webSocket(encryptedFunc());
+                        }
+                    )
+                );
             }
         </script>
     </body>
