@@ -2,17 +2,15 @@ let protocol = "ws://";
 
 if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
-const tableRef = document.getElementsByTagName("tbody")[0];
 
+const tableRef = document.getElementsByTagName("tbody")[0];
 // 获取输入容器和内容元素
 const container = document.getElementById("imageContainer");
 // 创建 DOMParser 实例
 const parser = new DOMParser();
-function render(JSON) {
-    while (tableRef.firstChild) {
-        tableRef.removeChild(tableRef.firstChild);
-    }
-    for (const item of JSON) {
+function render(items) {
+    tableRef.innerHTML = "";
+    for (const item of items) {
         tableRef.insertRow().innerHTML =
             "<th scope='row'>" +
             new Date(item.unixMicro / 1000).toLocaleString() +
@@ -125,24 +123,6 @@ function handleTextPaste(item) {
         submit(text);
     });
 }
-// 监听容器的粘贴事件
-container.addEventListener("paste", function (e) {
-    // 取消默认粘贴行为
-    e.preventDefault();
-
-    // 获取粘贴的数据
-    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        // 判断是否为图片
-        if (item.type.indexOf("image") !== -1) {
-            handleImagePaste(item.getAsFile());
-        } else {
-            handleTextPaste(item);
-        }
-        break;
-    }
-});
 
 function decompressData(list) {
     list.forEach((element) => {
@@ -205,3 +185,22 @@ function webSocket(encryptedData) {
 function send(params) {
     ws.send(pako.gzip(params, { to: "binary", level: 9 }));
 }
+
+// 监听容器的粘贴事件
+container.addEventListener("paste", function (e) {
+    // 取消默认粘贴行为
+    e.preventDefault();
+
+    // 获取粘贴的数据
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        // 判断是否为图片
+        if (item.type.indexOf("image") !== -1) {
+            handleImagePaste(item.getAsFile());
+        } else {
+            handleTextPaste(item);
+        }
+        break;
+    }
+});
