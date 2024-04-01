@@ -5,13 +5,11 @@
         content="width=device-width,user-scalable=no,initial-scale=1.0,  maximum-scale=1.0,minimum-scale=1.0"
     />
     <link href="static/bootstrap.min.css" rel="stylesheet" />
-    <link rel="preload" href="static/wasm.wasm" as="fetch" />
     <head>
         <meta charset="UTF-8" />
         <title>我的剪贴板</title>
         <script async>
             "use strict";
-            const wasm = fetch("static/wasm.wasm");
         </script>
         <script src="static/wasm_exec_tiny.js"></script>
         <script src="static/bootstrap.bundle.min.js"></script>
@@ -68,6 +66,7 @@
         </table>
         <script>
             const go = new Go();
+            const wasm = fetch("static/wasm.wasm");
             if ("instantiateStreaming" in WebAssembly) {
                 WebAssembly.instantiateStreaming(wasm, go.importObject).then(
                     function (obj) {
