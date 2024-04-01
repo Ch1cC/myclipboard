@@ -1,7 +1,7 @@
 let protocol = "ws://";
+
+if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
-const go = new Go();
-const WASM_URL = "static/wasm.wasm";
 const tableRef = document.getElementsByTagName("tbody")[0];
 
 // 获取输入容器和内容元素
@@ -143,26 +143,6 @@ container.addEventListener("paste", function (e) {
         break;
     }
 });
-if ("instantiateStreaming" in WebAssembly) {
-    WebAssembly.instantiateStreaming(fetch(WASM_URL), go.importObject).then(
-        function (obj) {
-            go.run(obj.instance);
-            webSocket(encryptedFunc());
-        }
-    );
-} else {
-    fetch(WASM_URL)
-        .then((resp) => resp.arrayBuffer())
-        .then((bytes) =>
-            WebAssembly.instantiate(bytes, go.importObject).then(function (
-                obj
-            ) {
-                go.run(obj.instance);
-                webSocket(encryptedFunc());
-            })
-        );
-}
-if (window.location.protocol === "https:") protocol = "wss://";
 
 function decompressData(list) {
     list.forEach((element) => {
