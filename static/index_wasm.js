@@ -2,7 +2,23 @@ let protocol = "ws://";
 
 if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
-
+const go = new Go();
+const wasm = fetch("static/wasm.wasm");
+if ("instantiateStreaming" in WebAssembly) {
+    WebAssembly.instantiateStreaming(wasm, go.importObject).then(function (
+        obj
+    ) {
+        go.run(obj.instance);
+        webSocket(encryptedFunc());
+    });
+} else {
+    wasm.then((resp) => resp.arrayBuffer()).then((bytes) =>
+        WebAssembly.instantiate(bytes, go.importObject).then(function (obj) {
+            go.run(obj.instance);
+            webSocket(encryptedFunc());
+        })
+    );
+}
 const tableRef = document.getElementsByTagName("tbody")[0];
 // 获取输入容器和内容元素
 const container = document.getElementById("imageContainer");
@@ -32,7 +48,6 @@ function copy(e) {
     const text = e.parentNode.parentNode.children[1].textContent;
     //如果text节点没文本.代表是图片
     if (!text.length) {
-        // 获取图片元素
         // 创建 Blob 对象
         const blob = base64ToBlob(
             e.parentNode.parentNode.children[1].children[0].children[0].src
@@ -52,13 +67,12 @@ function base64ToBlob(base64) {
     for (let i = 0; i < binaryString.length; i++) {
         uint8Array[i] = binaryString.charCodeAt(i);
     }
-    return new Blob([uint8Array], { type: "image/png" });
+    return new Blob([uint8Array], { type: `image/png` });
 }
 function submit(value) {
     const text = value
         ? value
         : document.getElementById("imageContainer").textContent;
-
     // 解析 HTML 字符串
     var doc = parser.parseFromString(text, "text/html");
     if (
@@ -84,40 +98,56 @@ function submit(value) {
     }
     document.getElementById("imageContainer").textContent = "";
 }
-
 function handleImagePaste(blob) {
     const reader = new FileReader();
     reader.onload = function (event) {
         const img = new Image();
-        img.onload = function () {
-            // 创建一个 Canvas 元素
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            // 将图片绘制到 Canvas 上
-            canvas.width = img.width; // 设置压缩后的宽度
-            canvas.height = img.height; // 根据宽度等比例调整高度
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // 将 Canvas 中的图像数据转换为 Base64 编码字符串
-            const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.2); // 第二个参数是图片质量，取值范围为 0-1
-
-            // 创建一个新的 Image 元素，并设置其 src 属性为压缩后的图片
-            const compressedImg = new Image();
-            compressedImg.src = compressedDataUrl;
-
-            // 清空 div 中的内容
-            // content.innerHTML = "";
-
-            // content.appendChild(compressedImg);
-            // console.log(compressedImg.outerHTML);
-            send(compressedImg.outerHTML);
-        };
         img.src = event.target.result;
+        img.onload = function () {
+            const { width, height } = img;
+            // 创建canvas画布
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            if (!context) {
+                console.error("Canvas 2D context is not supported.");
+                return;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            context.clearRect(0, 0, width, height);
+            context.drawImage(img, 0, 0, width, height);
+            // 将 Canvas 数据导出为 Blob
+            canvas.toBlob(
+                (blob) => {
+                    // 创建一个新的图像元素并设置其 src
+                    const compressedImg = new Image();
+                    compressedImg.src = URL.createObjectURL(blob);
+                    send(compressedImg.outerHTML);
+                    // 清理 Canvas
+                    URL.revokeObjectURL(img.src);
+                    canvas.width = 0;
+                    canvas.height = 0;
+                },
+                "image/jpeg", // 输出格式
+                0.7 // 输出质量（0-1）
+            );
+        };
     };
     reader.readAsDataURL(blob);
 }
-
+// 定义一个函数来获取图片类型
+function getImageType(dataUrl) {
+    // 匹配 data:image/ 后的内容
+    var regex = /^data:image\/([a-z]+);/;
+    var match = dataUrl.match(regex);
+    if (match) {
+        // 如果匹配成功，返回图片类型
+        return match[1];
+    } else {
+        // 如果匹配失败，返回空字符串或者 null（根据实际情况）
+        return "";
+    }
+}
 function handleTextPaste(item) {
     item.getAsString(function (text) {
         submit(text);
@@ -133,7 +163,7 @@ function decompressData(list) {
         );
         try {
             // 解压gzip数据
-            const uncompressedData = pako.inflate(plain, {
+            const uncompressedData = pako.ungzip(plain, {
                 to: "string",
             });
             // 输出解压后的数据
@@ -158,9 +188,7 @@ function webSocket(encryptedData) {
         var reader = new FileReader();
         reader.onload = function () {
             var text = reader.result;
-            const uncompressedData = pako.inflate(text, {
-                to: "string",
-            });
+            const uncompressedData = pako.ungzip(text, { to: "string" });
             const list = JSON.parse(uncompressedData);
             decompressData(list);
             render(list);
@@ -183,7 +211,7 @@ function webSocket(encryptedData) {
 }
 
 function send(params) {
-    ws.send(pako.gzip(params, { to: "binary", level: 9 }));
+    ws.send(pako.gzip(params, { level: 6 }));
 }
 
 // 监听容器的粘贴事件
