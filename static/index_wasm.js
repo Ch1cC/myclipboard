@@ -99,41 +99,33 @@ function submit(value) {
     document.getElementById("imageContainer").textContent = "";
 }
 function handleImagePaste(blob) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = function () {
-            const { width, height } = img;
-            // 创建canvas画布
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            if (!context) {
-                console.error("Canvas 2D context is not supported.");
-                return;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            context.clearRect(0, 0, width, height);
-            context.drawImage(img, 0, 0, width, height);
-            // 将 Canvas 数据导出为 Blob
-            canvas.toBlob(
-                (blob) => {
-                    // 创建一个新的图像元素并设置其 src
-                    const compressedImg = new Image();
-                    compressedImg.src = URL.createObjectURL(blob);
-                    send(compressedImg.outerHTML);
-                    // 清理 Canvas
-                    URL.revokeObjectURL(img.src);
-                    canvas.width = 0;
-                    canvas.height = 0;
-                },
-                "image/jpeg", // 输出格式
-                0.7 // 输出质量（0-1）
-            );
-        };
+    const img = new Image();
+    // 将 Blob 转换为图像 URL
+    img.src = URL.createObjectURL(blob);
+    img.onload = function () {
+        const { width, height } = img;
+        // 创建canvas画布
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) {
+            console.error("Canvas 2D context is not supported.");
+            return;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        context.clearRect(0, 0, width, height);
+        context.drawImage(img, 0, 0, width, height);
+        // 将 Canvas 数据导出为 Blob
+        const base64String = canvas.toDataURL(
+            "image/jpeg", // 输出格式
+            0.7 // 输出质量（0-1）
+        );
+        // 将 Base64 字符串用作图像的 src，回显到页面上
+        const compressedImg = new Image();
+        compressedImg.src = base64String;
+        send(compressedImg.outerHTML);
     };
-    reader.readAsDataURL(blob);
+    img.onopen;
 }
 // 定义一个函数来获取图片类型
 function getImageType(dataUrl) {
