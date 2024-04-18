@@ -111,8 +111,8 @@ function handleImagePaste(blob) {
             console.error("Canvas 2D context is not supported.");
             return;
         }
-        canvas.width = width / 2;
-        canvas.height = height / 2;
+        canvas.width = width;
+        canvas.height = height;
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
         // 将 Canvas 数据导出为 Blob
         const base64String = canvas.toDataURL(
