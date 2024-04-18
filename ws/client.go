@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"myclipboard/clipboard"
 	"myclipboard/config"
 	"myclipboard/convert"
 	"net"
@@ -88,20 +87,11 @@ func (client *Client) read() {
 			//ReadMessage失败，关闭websocket管道、注销client，退出
 			break
 		} else {
-			put(msg)
+			convert.Put(msg)
 			data := convert.BuildJson()
 			client.hub.broadcast <- data
 		}
 	}
-}
-
-/*
-*
-存储数据
-*/
-func put(message []byte) {
-	unixMicro := time.Now().UnixMicro()
-	convert.Put(unixMicro, clipboard.Clipboard{UnixMicro: unixMicro, Msg: message}, config.Duration)
 }
 
 // 从hub的broadcast那儿读限数据，写到websocket连接里面去

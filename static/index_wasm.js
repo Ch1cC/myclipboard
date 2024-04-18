@@ -98,13 +98,40 @@ function submit(value) {
     }
     document.getElementById("imageContainer").textContent = "";
 }
-
 function handleImagePaste(blob) {
     const reader = new FileReader();
     reader.onload = function (event) {
         const img = new Image();
         img.src = event.target.result;
-        send(img.outerHTML);
+        img.onload = function () {
+            const { width, height } = img;
+            // 创建canvas画布
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            if (!context) {
+                console.error("Canvas 2D context is not supported.");
+                return;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            context.clearRect(0, 0, width, height);
+            context.drawImage(img, 0, 0, width, height);
+            // 将 Canvas 数据导出为 Blob
+            canvas.toBlob(
+                (blob) => {
+                    // 创建一个新的图像元素并设置其 src
+                    const compressedImg = new Image();
+                    compressedImg.src = URL.createObjectURL(blob);
+                    send(compressedImg.outerHTML);
+                    // 清理 Canvas
+                    URL.revokeObjectURL(img.src);
+                    canvas.width = 0;
+                    canvas.height = 0;
+                },
+                "image/jpeg", // 输出格式
+                0.7 // 输出质量（0-1）
+            );
+        };
     };
     reader.readAsDataURL(blob);
 }
@@ -136,7 +163,7 @@ function decompressData(list) {
         );
         try {
             // 解压gzip数据
-            const uncompressedData = pako.inflate(plain, {
+            const uncompressedData = pako.ungzip(plain, {
                 to: "string",
             });
             // 输出解压后的数据
@@ -161,9 +188,7 @@ function webSocket(encryptedData) {
         var reader = new FileReader();
         reader.onload = function () {
             var text = reader.result;
-            const uncompressedData = pako.inflate(text, {
-                to: "string",
-            });
+            const uncompressedData = pako.ungzip(text, { to: "string" });
             const list = JSON.parse(uncompressedData);
             decompressData(list);
             render(list);
@@ -186,7 +211,7 @@ function webSocket(encryptedData) {
 }
 
 function send(params) {
-    ws.send(pako.gzip(params, { to: "binary", level: 9 }));
+    ws.send(pako.gzip(params, { level: 6 }));
 }
 
 // 监听容器的粘贴事件
