@@ -27,6 +27,8 @@ const main = document.getElementById("main");
 // 创建 DOMParser 实例
 const parser = new DOMParser();
 function render(items) {
+    main.style.display = "block";
+    spinner.style.display = "none";
     tableRef.innerHTML = "";
     for (const item of items) {
         tableRef.insertRow().innerHTML =
@@ -178,8 +180,6 @@ function webSocket(encryptedData) {
             `ws?token=${encryptedData}`
     );
     ws.onmessage = function (e) {
-        main.style.display = "block";
-        spinner.style.display = "none";
         var reader = new FileReader();
         reader.onload = function () {
             var text = reader.result;
