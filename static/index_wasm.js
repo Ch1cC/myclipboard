@@ -22,6 +22,8 @@ if ("instantiateStreaming" in WebAssembly) {
 const tableRef = document.getElementsByTagName("tbody")[0];
 // 获取输入容器和内容元素
 const container = document.getElementById("imageContainer");
+const spinner = document.getElementById("spinner");
+const main = document.getElementById("main");
 // 创建 DOMParser 实例
 const parser = new DOMParser();
 function render(items) {
@@ -169,13 +171,15 @@ function decompressData(list) {
 }
 
 function webSocket(encryptedData) {
-    const webSocket = new WebSocket(
+    ws = new WebSocket(
         protocol +
             window.location.host +
             window.location.pathname +
             `ws?token=${encryptedData}`
     );
-    webSocket.onmessage = function (e) {
+    ws.onmessage = function (e) {
+        main.style.display = "block";
+        spinner.style.display = "none";
         var reader = new FileReader();
         reader.onload = function () {
             var text = reader.result;
@@ -186,18 +190,19 @@ function webSocket(encryptedData) {
         };
         reader.readAsArrayBuffer(e.data);
     };
-    webSocket.onopen = function (e) {
-        ws = webSocket;
+    ws.onopen = function (e) {
         // console.log("开启了");
     };
-    webSocket.onerror = function (e) {
+    ws.onerror = function (e) {
         // console.log(e)
         console.log("错误了");
     };
-    webSocket.onclose = function (e) {
+    ws.onclose = function (e) {
         // console.log(e)
         console.log("关闭了");
-        window.location.reload();
+        main.style.display = "none";
+        spinner.style.display = "flex";
+        webSocket(encryptedFunc());
     };
 }
 
