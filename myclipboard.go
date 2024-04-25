@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+var version string // 用于存储版本号
 func main() {
 	var port int
 	flag.DurationVar(&config.Duration, "duration", time.Minute*15, "过期时间间隔")
@@ -35,7 +36,7 @@ func main() {
 	flag.Parse()
 	fmt.Printf("127.0.0.1:%d\n", port)
 	fmt.Printf("过期时间间隔设置为%s\n", config.Duration)
-	convert.KV.Store(time.Now().UnixMicro(), convert.Row{UnixMicro: time.Now().UnixMicro(), Msg: []byte("欢迎使用")})
+	convert.KV.Store(time.Now().UnixMicro(), convert.Row{UnixMicro: time.Now().UnixMicro(), Msg: []byte("当前版本号:" + version)})
 	convert.KV.Store(time.Now().UnixMicro()+1, convert.Row{UnixMicro: time.Now().UnixMicro(), Msg: []byte("过期时间间隔为" + config.Duration.String())})
 	err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil) // 设置监听的端口
 	if err != nil {
