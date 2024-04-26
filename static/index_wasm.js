@@ -32,13 +32,23 @@ function render(items) {
     tableRef.innerHTML = "";
     for (const item of items) {
         tableRef.insertRow().innerHTML =
-            "<th scope='row'>" +
+            `<th scope='row'>` +
             new Date(item.unixMicro / 1000).toLocaleString() +
-            "</th>" +
-            `<td><div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">${item.msg}</div></td>` +
+            `</th>` +
+            `<td><div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">
+            ${item.msg}</div></td>` +
             `<span class="d-grid gap-2">
-                                  <button class="btn btn-primary" type="button" onclick="copy(this)" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="复制成功">复制</button>
-                                  </span>`;
+                <a role="button"  
+                tabindex="0"  
+                class="btn btn-primary" 
+                type="button" 
+                onclick="copy(this)" 
+                data-bs-container="body" 
+                data-bs-trigger="focus" 
+                data-bs-toggle="popover" 
+                data-bs-placement="left" 
+                data-bs-content="复制成功">复制</a>
+            </span>`;
     }
     const popoverTriggerList = document.querySelectorAll(
         '[data-bs-toggle="popover"]'
