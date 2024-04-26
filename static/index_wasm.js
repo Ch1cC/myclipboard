@@ -31,23 +31,28 @@ function render(items) {
     spinner.style.display = "none";
     tableRef.innerHTML = "";
     for (const item of items) {
-        tableRef.insertRow().innerHTML =
-            `<th scope='row'>` +
-            new Date(item.unixMicro / 1000).toLocaleString() +
-            `</th>` +
-            `<td><div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">
-            ${item.msg}</div></td>` +
-            `<span class="d-grid gap-2">
-                <a role="button"  
-                tabindex="0"  
-                class="btn btn-primary" 
-                type="button" 
-                onclick="copy(this)" 
-                data-bs-container="body" 
-                data-bs-trigger="focus" 
-                data-bs-toggle="popover" 
-                data-bs-placement="left" 
-                data-bs-content="复制成功">复制</a>
+        tableRef.insertRow().innerHTML = `<th scope='row'>
+            ${new Date(item.unixMicro / 1000).toLocaleString()}
+            </th>
+            <td>
+                <div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">
+                    ${item.msg}
+                </div>
+            </td>
+            <span class="d-grid gap-2">
+                <a 
+                    role="button"  
+                    tabindex="0"  
+                    class="btn btn-primary" 
+                    type="button" 
+                    onclick="copy(this)" 
+                    data-bs-container="body" 
+                    data-bs-trigger="focus" 
+                    data-bs-toggle="popover" 
+                    data-bs-placement="left" 
+                    data-bs-content="复制成功">
+                    复制
+                </a>
             </span>`;
     }
     const popoverTriggerList = document.querySelectorAll(
@@ -61,7 +66,7 @@ function render(items) {
 function copy(e) {
     const text = e.parentNode.parentNode.children[1].textContent;
     //如果text节点没文本.代表是图片
-    if (!text.length) {
+    if (!text.trim().length) {
         // 创建 Blob 对象
         const blob = base64ToBlob(
             e.parentNode.parentNode.children[1].children[0].children[0].src
