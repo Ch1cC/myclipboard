@@ -75,7 +75,7 @@ function copy(e) {
         // 将 DataTransfer 对象的数据写入剪切板
         navigator.clipboard.write(data);
     } else {
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(text.trim());
     }
 }
 // 将 Base64 编码字符串转换为 Blob 对象
