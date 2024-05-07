@@ -42,16 +42,20 @@ function render(items) {
             <span class="d-grid gap-2">
                 <a 
                     role="button"  
-                    tabindex="0"  
-                    class="btn btn-primary" 
+                    tabindex="0"
                     type="button" 
                     onclick="copy(this)" 
-                    data-bs-container="body" 
+                    ${
+                        extractFirstUrl(item.msg)
+                            ? `class="btn btn-primary">打开`
+                            : `data-bs-container="body" 
+                    class="btn btn-dark" 
                     data-bs-trigger="focus" 
                     data-bs-toggle="popover" 
                     data-bs-placement="left" 
                     data-bs-content="复制成功">
-                    复制
+                    复制`
+                    }
                 </a>
             </span>`;
     }
@@ -75,7 +79,27 @@ function copy(e) {
         // 将 DataTransfer 对象的数据写入剪切板
         navigator.clipboard.write(data);
     } else {
-        navigator.clipboard.writeText(text.trim());
+        const haveUrl = extractFirstUrl(text.trim());
+        if (haveUrl) {
+            // 使用 window.open() 打开 URL 在新窗口中
+            window.open(haveUrl, "_blank");
+        } else {
+            navigator.clipboard.writeText(text.trim());
+        }
+    }
+}
+function extractFirstUrl(text) {
+    // 定义匹配 URL 的正则表达式模式
+    var pattern = /https?:\/\/\S+/i;
+
+    // 使用正则表达式进行匹配
+    var match = text.match(pattern);
+
+    // 如果找到匹配则返回第一个 URL
+    if (match) {
+        return match[0];
+    } else {
+        return false;
     }
 }
 // 将 Base64 编码字符串转换为 Blob 对象
