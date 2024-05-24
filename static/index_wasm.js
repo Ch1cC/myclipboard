@@ -32,7 +32,7 @@ function render(items) {
     tableRef.innerHTML = "";
     for (const item of items) {
         tableRef.insertRow().innerHTML = `<th scope='row'>
-            ${new Date(item.unixMicro / 1000).toLocaleString()}
+            ${new Date(item.unix * 1000).toLocaleString("zh-CN")}
             </th>
             <td>
                 <div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">

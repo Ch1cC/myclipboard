@@ -9,6 +9,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestAdd(t *testing.T) { // JavaScript 加密后的数据（Base64 编码的字符串）
-	encryptedDataHex := "26115993bec522f9ae913a14719feb448d9b42b0aeaa078f98dbac3ed5bb4f802842312cba719150ad5bbc2a1adb67c90997779337d268004603ca88b62fad7ca84faf0c1c85a6c15d6fdfce55f3cfbbfe2e442bc83008f6263aee46d99f44f75cf8e739b5ee4efeed138824b316588d210848e2e1ce1b0be97d9499134eb96203eb9493db97bcc5ae5939c84c305c40c05e7d52adcd646de5543318b47c38a1a4d96bdb8188e839a164fd6c1fde9eda27dee9d922dd6e1c2c6a3575f5071a12e46ed52cb6d38bf8fd0212c407fd713f79d05a032f00dec0d111505ab82b9ccf1f41b54c4264aa59d167d63182aae5449cb995f12ec2d4c024d6dee1d8011686" // 将此处替换为实际的加密后的数据
+	encryptedDataHex := "ba2ea204cb15d423ad5e0708288b91b9170c9e278e4ec17a50e5f4795d9626570fea2996e3e994f5128a25057629fabcbeb838db884d81b18d7f6dbb289b15c8633e65cff0b4055049c525e82b4ab55a4e9f00a2aff04529bac2646e79dc3cdb94761cef912306152d930d3129bcd0909f24b099398f18358442c18596f928c21a31a3f93027a09f86a622bac63bbc967c7247c01f46333705dd7ea78c78bd403b4d675cfe12b6b13a25a905a7c74bf9012a4ead8a580ba70316febd656be3c59d74b3369340c6af4309619be7b578114889a59b91de571bec9986cad4838e976f578223cd6c9589a9cbaec082c210515634d7fcc0c1ba6ef6e8a931c998d42f" // 将此处替换为实际的加密后的数据
 
 	// 将十六进制格式的字符串解码为字节数组
 	encryptedData, err := hex.DecodeString(encryptedDataHex)
@@ -24,7 +25,6 @@ func TestAdd(t *testing.T) { // JavaScript 加密后的数据（Base64 编码的
 		fmt.Println("Error decoding hex string:", err)
 		return
 	}
-
 	// 加载私钥
 	privateKeyPEM := []byte(`
 -----BEGIN RSA PRIVATE KEY-----
@@ -73,9 +73,10 @@ C5zQCQYrICnLj6xQ3qla8aX2fLqy6pObVLG3ajZ0att+Rdfip8U=
 		fmt.Println("Error decrypting data:", err)
 		return
 	}
-
+	// 为了验证转换是否正确，可以将字节切片转换回int64
+	convertedBack := int64(binary.BigEndian.Uint64(decryptedData))
 	// 打印解密后的数据
-	fmt.Println("Decrypted data:", decryptedData)
+	fmt.Println("Decrypted data:", convertedBack)
 }
 
 func TestGenRsa(t *testing.T) {

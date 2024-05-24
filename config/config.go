@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
@@ -80,7 +81,12 @@ func VerifyRsa(encryptedDataHex string) bool {
 		fmt.Println("Error decrypting data:", err)
 		return false
 	}
-	return decryptedData != nil
+	// 为了验证转换是否正确，可以将字节切片转换回int64
+	convertedBack := int64(binary.BigEndian.Uint64(decryptedData))
+	// 打印解密后的数据
+	fmt.Println("Decrypted data:", convertedBack)
+
+	return time.Now().Unix()-convertedBack < 10
 }
 
 //TODO
