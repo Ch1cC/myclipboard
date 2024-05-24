@@ -51,9 +51,9 @@ func encryptedFunc(this js.Value, args []js.Value) interface{} {
 	unixTimestamp := time.Now().Unix()
 
 	// 将Unix时间戳转换为字节数组
-	data := make([]byte, 8) // 64位整数需要8个字节
-	binary.BigEndian.PutUint64(data, uint64(unixTimestamp))
-	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPubKey, data, nil)
+	byteSlice := make([]byte, 8) // 64位整数需要8个字节
+	binary.BigEndian.PutUint64(byteSlice, uint64(unixTimestamp))
+	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPubKey, byteSlice, nil)
 	if err != nil {
 		fmt.Println("Failed to encrypt data:", err)
 		return nil

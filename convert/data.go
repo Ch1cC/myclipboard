@@ -24,8 +24,8 @@ func put(key int64, value interface{}, exp time.Duration) {
 }
 
 type Row struct {
-	UnixMicro int64  `json:"unixMicro"`
-	Msg       []byte `json:"msg"`
+	Unix int64  `json:"unix"`
+	Msg  []byte `json:"msg"`
 }
 
 /*
@@ -33,8 +33,8 @@ type Row struct {
 存储数据
 */
 func Put(message []byte) {
-	unixMicro := time.Now().UnixMicro()
-	put(unixMicro, Row{UnixMicro: unixMicro, Msg: message}, config.Duration)
+	unix := time.Now().Unix()
+	put(unix, Row{Unix: unix, Msg: message}, config.Duration)
 }
 
 func BuildJson() []byte {
