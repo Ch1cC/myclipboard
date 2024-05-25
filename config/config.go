@@ -84,7 +84,7 @@ func VerifyRsa(encryptedDataHex string) bool {
 	// 为了验证转换是否正确，可以将字节切片转换回int64
 	convertedBack := int64(binary.BigEndian.Uint64(decryptedData))
 	// 打印解密后的数据
-	fmt.Println("Decrypted data:", convertedBack)
+	// fmt.Println("Decrypted data:", convertedBack)
 
 	return time.Now().Unix()-convertedBack < 10
 }
