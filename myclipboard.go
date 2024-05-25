@@ -36,8 +36,9 @@ func main() {
 	flag.Parse()
 	fmt.Printf("127.0.0.1:%d\n", port)
 	fmt.Printf("过期时间间隔设置为%s\n", config.Duration)
+	fmt.Printf("当前版本号%s\n", version)
 	convert.KV.Store(time.Now().Unix(), convert.Row{Unix: time.Now().Unix(), Msg: []byte("当前版本号:" + version)})
-	convert.KV.Store(time.Now().Unix()+1, convert.Row{Unix: time.Now().Unix(), Msg: []byte("过期时间间隔为" + config.Duration.String())})
+	convert.KV.Store(time.Now().Unix()+1, convert.Row{Unix: time.Now().Unix(), Msg: []byte("过期时间间隔为:" + config.Duration.String())})
 	err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil) // 设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

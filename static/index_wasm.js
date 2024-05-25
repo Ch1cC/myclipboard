@@ -26,12 +26,8 @@ const spinner = document.getElementById("spinner");
 const main = document.getElementById("main");
 // 创建 DOMParser 实例
 const parser = new DOMParser();
-function render(items) {
-    main.style.display = "block";
-    spinner.style.display = "none";
-    tableRef.innerHTML = "";
-    for (const item of items) {
-        tableRef.insertRow().innerHTML = `<th scope='row'>
+function renderItem(item) {
+    tableRef.insertRow().innerHTML = `<th scope='row'>
             ${new Date(item.unix * 1000).toLocaleString("zh-CN")}
             </th>
             <td>
@@ -58,26 +54,20 @@ function render(items) {
                     }
                 </a>
             </span>`;
-    }
-    const popoverTriggerList = document.querySelectorAll(
-        '[data-bs-toggle="popover"]'
-    );
-    const popoverList = [...popoverTriggerList].map(
-        (popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl)
-    );
 }
 
 function copy(e) {
     const text = e.parentNode.parentNode.children[1].textContent;
     //如果text节点没文本.代表是图片
     if (!text.trim().length) {
-        // 创建 Blob 对象
-        const blob = base64ToBlob(
-            e.parentNode.parentNode.children[1].children[0].children[0].src
-        );
-        const data = [new ClipboardItem({ ["image/png"]: blob })];
-        // 将 DataTransfer 对象的数据写入剪切板
-        navigator.clipboard.write(data);
+        fetch(e.parentNode.parentNode.children[1].children[0].children[0].src)
+            .then((response) => response.blob()) // 将响应数据转换为 Blob 对象
+            .then((blob) => {
+                const data = [new ClipboardItem({ [blob.type]: blob })];
+                // 将 DataTransfer 对象的数据写入剪切板
+                navigator.clipboard.write(data);
+            })
+            .catch((error) => console.error("Failed to fetch image:", error));
     } else {
         const haveUrl = extractFirstUrl(text.trim());
         if (haveUrl) {
@@ -88,6 +78,18 @@ function copy(e) {
         }
     }
 }
+function getImgByBase64(base64Img) {
+    const doc = parser.parseFromString(base64Img, "text/html");
+    // 从 DOM 文档中提取图像元素
+    const img = doc.querySelector("img[src]");
+    if (img) {
+        // 将 Blob 转换为图像 URL
+        const blob = base64ToBlob(img.src);
+        img.src = URL.createObjectURL(blob);
+        return img.outerHTML;
+    }
+    return "";
+}
 function extractFirstUrl(text) {
     // 定义匹配 URL 的正则表达式模式
     var pattern = /https?:\/\/\S+/i;
@@ -97,7 +99,7 @@ function extractFirstUrl(text) {
 
     // 如果找到匹配则返回第一个 URL
     if (match) {
-        return match[0];
+        return !match[0].includes(window.location.hostname);
     } else {
         return false;
     }
@@ -113,13 +115,10 @@ function base64ToBlob(base64) {
     return new Blob([uint8Array], { type: `image/png` });
 }
 function submit(value) {
-    const text = value
-        ? value
-        : document.getElementById("imageContainer").textContent;
+    const text = value ? value : container.textContent;
     // 解析 HTML 字符串
     var doc = parser.parseFromString(text, "text/html");
     if (
-        //纯文本
         !Array.from(doc.body.childNodes).some((node) => node.nodeType === 1) &&
         text
     ) {
@@ -139,7 +138,7 @@ function submit(value) {
                 );
         }
     }
-    document.getElementById("imageContainer").textContent = "";
+    container.textContent = "";
 }
 function handleImagePaste(blob) {
     const img = new Image();
@@ -169,46 +168,51 @@ function handleImagePaste(blob) {
     };
     img.onopen;
 }
-// 定义一个函数来获取图片类型
-function getImageType(dataUrl) {
-    // 匹配 data:image/ 后的内容
-    var regex = /^data:image\/([a-z]+);/;
-    var match = dataUrl.match(regex);
-    if (match) {
-        // 如果匹配成功，返回图片类型
-        return match[1];
-    } else {
-        // 如果匹配失败，返回空字符串或者 null（根据实际情况）
-        return "";
-    }
-}
 function handleTextPaste(item) {
     item.getAsString(function (text) {
         submit(text);
     });
 }
 
-function decompressData(list) {
+function decompressDataAndRender(list) {
+    main.style.display = "block";
+    spinner.style.display = "none";
+    tableRef.innerHTML = "";
     list.forEach((element) => {
-        // 使用 atob 将 base64 字符串解码为二进制数据
+        // 使用 atob 将 base64字符串解码为二进制数据
         const binaryString = atob(element.msg);
         const plain = new Uint8Array(
             [...binaryString].map((char) => char.charCodeAt(0))
         );
+
         try {
             // 解压gzip数据
             const uncompressedData = pako.ungzip(plain, {
                 to: "string",
             });
-            // 输出解压后的数据
-            element.msg = uncompressedData;
+            // 输出解压后的数据;
+            const img = getImgByBase64(uncompressedData);
+            if (img) {
+                element.msg = img;
+            } else {
+                element.msg = uncompressedData;
+            }
+            renderItem(element);
         } catch (error) {
-            // 使用 TextDecoder 将二进制数据解码为文本
+            console.log(error);
+            //未压缩的预设值
             const decoder = new TextDecoder();
             const text = decoder.decode(plain);
             element.msg = text;
+            renderItem(element);
         }
     });
+    const popoverTriggerList = document.querySelectorAll(
+        '[data-bs-toggle="popover"]'
+    );
+    const popoverList = [...popoverTriggerList].map(
+        (popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl)
+    );
 }
 
 function webSocket(encryptedData) {
@@ -221,11 +225,11 @@ function webSocket(encryptedData) {
     ws.onmessage = function (e) {
         var reader = new FileReader();
         reader.onload = function () {
-            var text = reader.result;
-            const uncompressedData = pako.ungzip(text, { to: "string" });
+            const uncompressedData = pako.ungzip(reader.result, {
+                to: "string",
+            });
             const list = JSON.parse(uncompressedData);
-            decompressData(list);
-            render(list);
+            decompressDataAndRender(list);
         };
         reader.readAsArrayBuffer(e.data);
     };
