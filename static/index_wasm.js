@@ -60,14 +60,15 @@ function copy(e) {
     const text = e.parentNode.parentNode.children[1].textContent;
     //如果text节点没文本.代表是图片
     if (!text.trim().length) {
-        fetch(e.parentNode.parentNode.children[1].children[0].children[0].src)
-            .then((response) => response.blob()) // 将响应数据转换为 Blob 对象
-            .then((blob) => {
-                const data = [new ClipboardItem({ [blob.type]: blob })];
-                // 将 DataTransfer 对象的数据写入剪切板
-                navigator.clipboard.write(data);
-            })
-            .catch((error) => console.error("Failed to fetch image:", error));
+        const clipboardItem = new ClipboardItem({
+            [`image/png`]: fetchBlob(
+                e.parentNode.parentNode.children[1].children[0].children[0].src
+            ),
+        });
+        navigator.clipboard.write([clipboardItem]).catch(function (error) {
+            console.log(error);
+        });
+        //
     } else {
         const haveUrl = extractFirstUrl(text.trim());
         if (haveUrl) {
@@ -77,6 +78,16 @@ function copy(e) {
             navigator.clipboard.writeText(text.trim());
         }
     }
+}
+function isSafari() {
+    const ua = navigator.userAgent;
+    const vendor = navigator.vendor;
+
+    return /Safari/.test(ua) || /Apple Computer/.test(vendor);
+}
+async function fetchBlob(src) {
+    const data = await fetch(src);
+    return await data.blob();
 }
 function getImgByBase64(base64Img) {
     const doc = parser.parseFromString(base64Img, "text/html");
@@ -98,8 +109,8 @@ function extractFirstUrl(text) {
     var match = text.match(pattern);
 
     // 如果找到匹配则返回第一个 URL
-    if (match) {
-        return !match[0].includes(window.location.hostname);
+    if (match && !match[0].includes(window.location.hostname)) {
+        return match[0];
     } else {
         return false;
     }
@@ -199,7 +210,7 @@ function decompressDataAndRender(list) {
             }
             renderItem(element);
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             //未压缩的预设值
             const decoder = new TextDecoder();
             const text = decoder.decode(plain);
