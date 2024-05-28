@@ -109,8 +109,8 @@ function extractFirstUrl(text) {
     var match = text.match(pattern);
 
     // 如果找到匹配则返回第一个 URL
-    if (match) {
-        return !match[0].includes(window.location.hostname);
+    if (match && !match[0].includes(window.location.hostname)) {
+        return match[0];
     } else {
         return false;
     }
