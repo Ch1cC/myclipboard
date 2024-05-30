@@ -31,10 +31,11 @@ function renderItem(item) {
             ${new Date(item.unix * 1000).toLocaleString("zh-CN")}
             </th>
             <td>
-                <div style="width:100%;white-space:normal;word-wrap:break-word;word-break:break-all;">
+                <div style="white-space:normal;word-wrap:break-word;word-break:break-all;">
                     ${item.msg}
                 </div>
             </td>
+            <td>
             <span class="d-grid gap-2">
                 <a 
                     role="button"  
@@ -53,9 +54,63 @@ function renderItem(item) {
                     复制`
                     }
                 </a>
-            </span>`;
+                ${
+                    navigator.share
+                        ? `<a 
+                role="button"  
+                tabindex="0"
+                type="button" 
+                onclick="share(this)" 
+                data-bs-container="body" 
+                class="btn btn-success" 
+                data-bs-trigger="focus">
+                分享
+            </a>`
+                        : ``
+                }
+                
+            </span></td>`;
 }
 
+function share(e) {
+    const text = e.parentNode.parentNode.children[1].textContent;
+    //如果text节点没文本.代表是图片
+    if (!text.trim().length) {
+        fetchBlob(
+            e.parentNode.parentNode.children[1].children[0].children[0].src
+        )
+            .then(function (blob) {
+                // 创建 File 对象
+                var file = new File([blob], "image.png", { type: "image/png" });
+
+                // 调用 Web Share API 进行分享
+                navigator
+                    .share({
+                        files: [file],
+                    })
+                    .then(function () {
+                        console.log("Image shared successfully");
+                    })
+                    .catch(function (error) {
+                        console.error("Error sharing image:", error);
+                    });
+            })
+            .catch(function (error) {
+                console.error("Error getting Blob:", error);
+            });
+    } else {
+        const haveUrl = extractFirstUrl(text.trim());
+        if (haveUrl) {
+            navigator.share({
+                url: haveUrl,
+            });
+        } else {
+            navigator.share({
+                text: text.trim(),
+            });
+        }
+    }
+}
 function copy(e) {
     const text = e.parentNode.parentNode.children[1].textContent;
     //如果text节点没文本.代表是图片
