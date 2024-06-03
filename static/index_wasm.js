@@ -77,7 +77,8 @@ function share(e) {
     //如果text节点没文本.代表是图片
     if (!text.trim().length) {
         fetchBlob(
-            e.parentNode.parentNode.parentNode.children[1].children[0].children[0].src
+            e.parentNode.parentNode.parentNode.children[1].children[0]
+                .children[0].src
         )
             .then(function (blob) {
                 // 创建 File 对象
@@ -99,16 +100,9 @@ function share(e) {
                 console.error("Error getting Blob:", error);
             });
     } else {
-        const haveUrl = extractFirstUrl(text.trim());
-        if (haveUrl) {
-            navigator.share({
-                url: haveUrl,
-            });
-        } else {
-            navigator.share({
-                text: text.trim(),
-            });
-        }
+        navigator.share({
+            text: text.trim(),
+        });
     }
 }
 function copy(e) {
@@ -117,7 +111,8 @@ function copy(e) {
     if (!text.trim().length) {
         const clipboardItem = new ClipboardItem({
             [`image/png`]: fetchBlob(
-                e.parentNode.parentNode.parentNode.children[1].children[0].children[0].src
+                e.parentNode.parentNode.parentNode.children[1].children[0]
+                    .children[0].src
             ),
         });
         navigator.clipboard.write([clipboardItem]).catch(function (error) {
