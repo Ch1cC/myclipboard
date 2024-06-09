@@ -90,7 +90,7 @@ function share(e) {
                         files: [file],
                     })
                     .then(function () {
-                        console.log("Image shared successfully");
+                        // console.log("Image shared successfully");
                     })
                     .catch(function (error) {
                         console.error("Error sharing image:", error);
