@@ -17,6 +17,6 @@ archives:
       # - LICENSE.txt
       - README.md
       # - CHANGELOG.md
-      - static/*
+      - dist/*
 release:
   target_commitish: "{{ .Commit }}"
