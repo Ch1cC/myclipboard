@@ -179,6 +179,10 @@ function base64ToBlob(base64) {
     }
     return new Blob([uint8Array], { type: `image/png` });
 }
+// 添加点击事件监听器
+document.getElementById("submit").addEventListener("click", function () {
+    submit();
+});
 function submit(value) {
     const text = value ? value : container.textContent;
     // 解析 HTML 字符串
