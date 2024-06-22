@@ -1,0 +1,22 @@
+{
+  "name": "myclipboard",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel index.html",
+    "build": "parcel build index.html --public-url /dist/ --no-source-maps -d ../dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "pako": "^2.1.0"
+  },
+  "devDependencies": {
+    "cssnano": "^4.1.11",
+    "postcss": "^8.4.38",
+    "sass": "^1.77.6"
+  }
+}

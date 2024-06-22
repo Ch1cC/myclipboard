@@ -1,9 +1,13 @@
+import { Popover } from "bootstrap";
+
+import pako from "pako";
+
 let protocol = "ws://";
 
 if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
 const go = new Go();
-const wasm = fetch("static/wasm.wasm");
+const wasm = fetch("dist/wasm.wasm");
 if ("instantiateStreaming" in WebAssembly) {
     WebAssembly.instantiateStreaming(wasm, go.importObject).then(function (
         obj
@@ -272,7 +276,7 @@ function decompressDataAndRender(list) {
         '[data-bs-toggle="popover"]'
     );
     const popoverList = [...popoverTriggerList].map(
-        (popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl)
+        (popoverTriggerEl) => new Popover(popoverTriggerEl)
     );
 }
 
