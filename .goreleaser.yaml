@@ -1,22 +1,23 @@
 env:
-  - GO111MODULE=on
+    - GO111MODULE=on
 builds:
-  - env: [CGO_ENABLED=0]
-    goos: # 编译平台列表
-      - linux
-      - windows
-      - darwin
-    goarch:
-      - "amd64"
-      - "arm64"
+    - env: [CGO_ENABLED=0]
+      goos: # 编译平台列表
+          - linux
+          - windows
+          - darwin
+      goarch:
+          - "amd64"
+          - "arm64"
 checksum:
-  name_template: "checksums.txt"
+    name_template: "checksums.txt"
 archives:
-  - format: zip
-    files:
-      # - LICENSE.txt
-      - README.md
-      # - CHANGELOG.md
-      - dist/*
+    - format: zip
+      files:
+          # - LICENSE.txt
+          - README.md
+          # - CHANGELOG.md
+          - dist/*
 release:
-  target_commitish: "{{ .Commit }}"
+    target_commitish: "{{ .Commit }}"
+dist: another-folder-that-is-not-dist
