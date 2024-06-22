@@ -45,7 +45,7 @@ decompression() {
 install_file() {
   NAME="$1"
   install -m 755 "${TMP_DIRECTORY}/$NAME" "/usr/local/etc/myclipboard/$NAME"
-  cp -r "${TMP_DIRECTORY}/static/" "/usr/local/etc/myclipboard/"
+  cp -r "${TMP_DIRECTORY}/dist/" "/usr/local/etc/myclipboard/"
 }
 
 install_myclipboard() {
