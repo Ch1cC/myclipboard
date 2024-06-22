@@ -1,9 +1,13 @@
+import { Popover } from "bootstrap";
+
+import pako from "pako";
+
 let protocol = "ws://";
 
 if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
 const go = new Go();
-const wasm = fetch("static/wasm.wasm");
+const wasm = fetch("dist/wasm.wasm");
 if ("instantiateStreaming" in WebAssembly) {
     WebAssembly.instantiateStreaming(wasm, go.importObject).then(function (
         obj
@@ -41,12 +45,11 @@ function renderItem(item) {
                     role="button"  
                     tabindex="0"
                     type="button" 
-                    onclick="copy(this)" 
                     ${
                         extractFirstUrl(item.msg)
                             ? `class="btn btn-primary">打开`
                             : `data-bs-container="body" 
-                    class="btn btn-dark" 
+                    class="btn btn-dark copy" 
                     data-bs-trigger="focus" 
                     data-bs-toggle="popover" 
                     data-bs-placement="left" 
@@ -59,10 +62,9 @@ function renderItem(item) {
                         ? `<a 
                 role="button"  
                 tabindex="0"
-                type="button" 
-                onclick="share(this)" 
+                type="button"
                 data-bs-container="body" 
-                class="btn btn-success" 
+                class="btn btn-success share" 
                 data-bs-trigger="focus">
                 分享
             </a>`
@@ -72,63 +74,6 @@ function renderItem(item) {
             </span></td>`;
 }
 
-function share(e) {
-    const text = e.parentNode.parentNode.parentNode.children[1].textContent;
-    //如果text节点没文本.代表是图片
-    if (!text.trim().length) {
-        fetchBlob(
-            e.parentNode.parentNode.parentNode.children[1].children[0]
-                .children[0].src
-        )
-            .then(function (blob) {
-                // 创建 File 对象
-                var file = new File([blob], "image.png", { type: "image/png" });
-
-                // 调用 Web Share API 进行分享
-                navigator
-                    .share({
-                        files: [file],
-                    })
-                    .then(function () {
-                        console.log("Image shared successfully");
-                    })
-                    .catch(function (error) {
-                        console.error("Error sharing image:", error);
-                    });
-            })
-            .catch(function (error) {
-                console.error("Error getting Blob:", error);
-            });
-    } else {
-        navigator.share({
-            text: text.trim(),
-        });
-    }
-}
-function copy(e) {
-    const text = e.parentNode.parentNode.parentNode.children[1].textContent;
-    //如果text节点没文本.代表是图片
-    if (!text.trim().length) {
-        const clipboardItem = new ClipboardItem({
-            [`image/png`]: fetchBlob(
-                e.parentNode.parentNode.parentNode.children[1].children[0]
-                    .children[0].src
-            ),
-        });
-        navigator.clipboard.write([clipboardItem]).catch(function (error) {
-            console.log(error);
-        });
-        //
-    } else {
-        const haveUrl = extractFirstUrl(text.trim());
-        if (haveUrl) {
-            // 使用 window.open() 打开 URL 在新窗口中
-            window.open(haveUrl, "_blank");
-        } else {
-            navigator.clipboard.writeText(text.trim());
-        }
-    }
-}
 function isSafari() {
     const ua = navigator.userAgent;
     const vendor = navigator.vendor;
@@ -175,6 +120,10 @@ function base64ToBlob(base64) {
     }
     return new Blob([uint8Array], { type: `image/png` });
 }
+// 添加点击事件监听器
+document.getElementById("submit").addEventListener("click", function () {
+    submit();
+});
 function submit(value) {
     const text = value ? value : container.textContent;
     // 解析 HTML 字符串
@@ -272,10 +221,86 @@ function decompressDataAndRender(list) {
         '[data-bs-toggle="popover"]'
     );
     const popoverList = [...popoverTriggerList].map(
-        (popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl)
+        (popoverTriggerEl) => new Popover(popoverTriggerEl)
     );
 }
+function addShareEventListener() {
+    const shares = document.getElementsByClassName("share");
+    for (let index = 0; index < shares.length; index++) {
+        const element = shares[index];
+        // 添加点击事件监听器
+        element.addEventListener("click", function () {
+            const text =
+                this.parentNode.parentNode.parentNode.children[1].textContent;
+            //如果text节点没文本.代表是图片
+            if (!text.trim().length) {
+                fetchBlob(
+                    this.parentNode.parentNode.parentNode.children[1]
+                        .children[0].children[0].src
+                )
+                    .then(function (blob) {
+                        // 创建 File 对象
+                        var file = new File([blob], "image.png", {
+                            type: "image/png",
+                        });
 
+                        // 调用 Web Share API 进行分享
+                        navigator
+                            .share({
+                                files: [file],
+                            })
+                            .then(function () {
+                                // console.log("Image shared successfully");
+                            })
+                            .catch(function (error) {
+                                console.error("Error sharing image:", error);
+                            });
+                    })
+                    .catch(function (error) {
+                        console.error("Error getting Blob:", error);
+                    });
+            } else {
+                navigator.share({
+                    text: text.trim(),
+                });
+            }
+        });
+    }
+}
+function addCopyEventListener() {
+    const copys = document.getElementsByClassName("copy");
+    for (let index = 0; index < copys.length; index++) {
+        const element = copys[index];
+        // 添加点击事件监听器
+        element.addEventListener("click", function () {
+            const text =
+                this.parentNode.parentNode.parentNode.children[1].textContent;
+            //如果text节点没文本.代表是图片
+            if (!text.trim().length) {
+                const clipboardItem = new ClipboardItem({
+                    [`image/png`]: fetchBlob(
+                        this.parentNode.parentNode.parentNode.children[1]
+                            .children[0].children[0].src
+                    ),
+                });
+                navigator.clipboard
+                    .write([clipboardItem])
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                //
+            } else {
+                const haveUrl = extractFirstUrl(text.trim());
+                if (haveUrl) {
+                    // 使用 window.open() 打开 URL 在新窗口中
+                    window.open(haveUrl, "_blank");
+                } else {
+                    navigator.clipboard.writeText(text.trim());
+                }
+            }
+        });
+    }
+}
 function webSocket(encryptedData) {
     ws = new WebSocket(
         protocol +
@@ -291,6 +316,8 @@ function webSocket(encryptedData) {
             });
             const list = JSON.parse(uncompressedData);
             decompressDataAndRender(list);
+            addCopyEventListener();
+            addShareEventListener();
         };
         reader.readAsArrayBuffer(e.data);
     };

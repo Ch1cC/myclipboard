@@ -4,3 +4,8 @@ bin
 actions.bak
 log
 push--tags.bat
+html/node_modules
+html/dist
+html/.cache
+html/wasm.wasm
+html/package-lock.json
