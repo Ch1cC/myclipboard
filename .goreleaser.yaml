@@ -20,4 +20,3 @@ archives:
           - html/dist/*
 release:
     target_commitish: "{{ .Commit }}"
-dist: another-folder-that-is-not-dist
