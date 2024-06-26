@@ -24,14 +24,14 @@ func main() {
 	})
 	// 设置访问的路由
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "dist/index.html")
+		http.ServeFile(w, r, "./html/dist/index.html")
 	})
 	http.Handle("/dist/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache")
 		if strings.HasSuffix(r.URL.Path, ".wasm") {
 			w.Header().Set("content-type", "application/wasm")
 		}
-		http.StripPrefix("/dist/", http.FileServer(http.Dir("dist"))).ServeHTTP(w, r)
+		http.StripPrefix("/dist/", http.FileServer(http.Dir("./html/dist"))).ServeHTTP(w, r)
 	}))
 	flag.Parse()
 	fmt.Printf("127.0.0.1:%d\n", port)
