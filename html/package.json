@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel index.html",
-    "build": "parcel build index.html --public-url ./dist --no-source-maps -d ../dist"
+    "dev": "parcel index.html --public-url ./dist",
+    "build": "del /Q ..\\dist & parcel build index.html --public-url /dist/ -d ../dist --no-source-maps"
   },
   "keywords": [],
   "author": "",

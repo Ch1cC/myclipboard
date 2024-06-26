@@ -47,7 +47,7 @@ function renderItem(item) {
                     type="button" 
                     ${
                         extractFirstUrl(item.msg)
-                            ? `class="btn btn-primary">打开`
+                            ? `class="btn btn-primary copy">打开`
                             : `data-bs-container="body" 
                     class="btn btn-dark copy" 
                     data-bs-trigger="focus" 
