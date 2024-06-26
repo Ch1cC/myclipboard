@@ -9,3 +9,4 @@ html/dist
 html/.cache
 html/wasm.wasm
 html/package-lock.json
+push--tags.sh
