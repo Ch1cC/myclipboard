@@ -17,7 +17,7 @@ archives:
           # - LICENSE.txt
           - README.md
           # - CHANGELOG.md
-          - dist/*
+          - html/dist/*
 release:
     target_commitish: "{{ .Commit }}"
 dist: another-folder-that-is-not-dist
