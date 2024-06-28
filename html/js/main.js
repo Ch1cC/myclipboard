@@ -224,81 +224,91 @@ function decompressDataAndRender(list) {
         (popoverTriggerEl) => new Popover(popoverTriggerEl)
     );
 }
-function addShareEventListener() {
-    const shares = document.getElementsByClassName("share");
-    for (let index = 0; index < shares.length; index++) {
-        const element = shares[index];
-        // 添加点击事件监听器
-        element.addEventListener("click", function () {
-            const text =
-                this.parentNode.parentNode.parentNode.children[1].textContent;
-            //如果text节点没文本.代表是图片
-            if (!text.trim().length) {
-                fetchBlob(
-                    this.parentNode.parentNode.parentNode.children[1]
-                        .children[0].children[0].src
-                )
-                    .then(function (blob) {
-                        // 创建 File 对象
-                        var file = new File([blob], "image.png", {
-                            type: "image/png",
-                        });
+function share(event) {
+    const text =
+        event.target.parentNode.parentNode.parentNode.children[1].textContent;
+    //如果text节点没文本.代表是图片
+    if (!text.trim().length) {
+        fetchBlob(
+            event.target.parentNode.parentNode.parentNode.children[1]
+                .children[0].children[0].src
+        )
+            .then(function (blob) {
+                // 创建 File 对象
+                var file = new File([blob], "image.png", {
+                    type: "image/png",
+                });
 
-                        // 调用 Web Share API 进行分享
-                        navigator
-                            .share({
-                                files: [file],
-                            })
-                            .then(function () {
-                                // console.log("Image shared successfully");
-                            })
-                            .catch(function (error) {
-                                console.error("Error sharing image:", error);
-                            });
+                // 调用 Web Share API 进行分享
+                navigator
+                    .share({
+                        files: [file],
+                    })
+                    .then(function () {
+                        // console.log("Image shared successfully");
                     })
                     .catch(function (error) {
-                        console.error("Error getting Blob:", error);
+                        console.error("Error sharing image:", error);
                     });
-            } else {
-                navigator.share({
-                    text: text.trim(),
-                });
-            }
+            })
+            .catch(function (error) {
+                console.error("Error getting Blob:", error);
+            });
+    } else {
+        navigator.share({
+            text: text.trim(),
         });
     }
 }
-function addCopyEventListener() {
+function removeAllEventListener() {
+    const copys = document.getElementsByClassName("copy");
+    for (let index = 0; index < copys.length; index++) {
+        const element = copys[index];
+        element.removeEventListener("click", copy);
+    }
+    const shares = document.getElementsByClassName("share");
+    for (let index = 0; index < shares.length; index++) {
+        const element = shares[index];
+        element.removeEventListener("click", share);
+    }
+}
+function addAllEventListener() {
     const copys = document.getElementsByClassName("copy");
     for (let index = 0; index < copys.length; index++) {
         const element = copys[index];
         // 添加点击事件监听器
-        element.addEventListener("click", function () {
-            const text =
-                this.parentNode.parentNode.parentNode.children[1].textContent;
-            //如果text节点没文本.代表是图片
-            if (!text.trim().length) {
-                const clipboardItem = new ClipboardItem({
-                    [`image/png`]: fetchBlob(
-                        this.parentNode.parentNode.parentNode.children[1]
-                            .children[0].children[0].src
-                    ),
-                });
-                navigator.clipboard
-                    .write([clipboardItem])
-                    .catch(function (error) {
-                        console.log(error);
-                    });
-                //
-            } else {
-                const haveUrl = extractFirstUrl(text.trim());
-                if (haveUrl) {
-                    // 使用 window.open() 打开 URL 在新窗口中
-                    window.open(haveUrl, "_blank");
-                } else {
-                    navigator.clipboard.writeText(text.trim());
-                }
-            }
+        element.addEventListener("click", copy);
+    }
+    const shares = document.getElementsByClassName("share");
+    for (let index = 0; index < shares.length; index++) {
+        const element = shares[index];
+        // 添加点击事件监听器
+        element.addEventListener("click", share);
+    }
+}
+function copy(event) {
+    const text =
+        event.target.parentNode.parentNode.parentNode.children[1].textContent;
+    //如果text节点没文本.代表是图片
+    if (!text.trim().length) {
+        const clipboardItem = new ClipboardItem({
+            [`image/png`]: fetchBlob(
+                event.target.parentNode.parentNode.parentNode.children[1]
+                    .children[0].children[0].src
+            ),
         });
+        navigator.clipboard.write([clipboardItem]).catch(function (error) {
+            console.log(error);
+        });
+        //
+    } else {
+        const haveUrl = extractFirstUrl(text.trim());
+        if (haveUrl) {
+            // 使用 window.open() 打开 URL 在新窗口中
+            window.open(haveUrl, "_blank");
+        } else {
+            navigator.clipboard.writeText(text.trim());
+        }
     }
 }
 function webSocket(encryptedData) {
@@ -315,9 +325,9 @@ function webSocket(encryptedData) {
                 to: "string",
             });
             const list = JSON.parse(uncompressedData);
+            removeAllEventListener();
             decompressDataAndRender(list);
-            addCopyEventListener();
-            addShareEventListener();
+            addAllEventListener();
         };
         reader.readAsArrayBuffer(e.data);
     };
