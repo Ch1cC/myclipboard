@@ -260,6 +260,12 @@ function share(event) {
         });
     }
 }
+//showImage
+function showImage(event) {
+    const img = event.target.src;
+    //直接打开
+    window.open(img);
+}
 function removeAllEventListener() {
     const copys = document.getElementsByClassName("copy");
     for (let index = 0; index < copys.length; index++) {
@@ -270,6 +276,12 @@ function removeAllEventListener() {
     for (let index = 0; index < shares.length; index++) {
         const element = shares[index];
         element.removeEventListener("click", share);
+    }
+    //获取所有img tag
+    const imgs = document.getElementsByTagName("img");
+    for (let index = 0; index < imgs.length; index++) {
+        const element = imgs[index];
+        element.removeEventListener("click", showImage);
     }
 }
 function addAllEventListener() {
@@ -284,6 +296,13 @@ function addAllEventListener() {
         const element = shares[index];
         // 添加点击事件监听器
         element.addEventListener("click", share);
+    }
+    //获取所有img tag
+    const imgs = document.getElementsByTagName("img");
+    for (let index = 0; index < imgs.length; index++) {
+        //添加点击事件
+        const element = imgs[index];
+        element.addEventListener("click", showImage);
     }
 }
 function copy(event) {
