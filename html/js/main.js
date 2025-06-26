@@ -1,25 +1,24 @@
 import { Popover } from "bootstrap";
-
 import pako from "pako";
 
 let protocol = "ws://";
-
+const port = 9090;
 if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
 const go = new Go();
-const wasm = fetch("dist/wasm.wasm");
+const wasm = fetch(new URL("../statics/wasm.wasm", import.meta.url));
 if ("instantiateStreaming" in WebAssembly) {
     WebAssembly.instantiateStreaming(wasm, go.importObject).then(function (
         obj
     ) {
         go.run(obj.instance);
-        webSocket(encryptedFunc());
+        connect_WebSocket(encryptedFunc());
     });
 } else {
     wasm.then((resp) => resp.arrayBuffer()).then((bytes) =>
         WebAssembly.instantiate(bytes, go.importObject).then(function (obj) {
             go.run(obj.instance);
-            webSocket(encryptedFunc());
+            connect_WebSocket(encryptedFunc());
         })
     );
 }
@@ -330,10 +329,12 @@ function copy(event) {
         }
     }
 }
-function webSocket(encryptedData) {
+function connect_WebSocket(encryptedData) {
     ws = new WebSocket(
         protocol +
-            window.location.host +
+            window.location.hostname +
+            ":" +
+            port +
             window.location.pathname +
             `ws?token=${encryptedData}`
     );
@@ -362,7 +363,7 @@ function webSocket(encryptedData) {
         console.log("关闭了");
         main.style.display = "none";
         spinner.style.display = "flex";
-        webSocket(encryptedFunc());
+        connect_WebSocket(encryptedFunc());
     };
 }
 

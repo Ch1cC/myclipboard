@@ -11,3 +11,4 @@ push--tags.bat
 push--tags.sh
 html/dist
 html/.parcel-cache
+update.sh
