@@ -1,11 +1,11 @@
 import { Popover } from "bootstrap";
 import pako from "pako";
 
-let protocol = "ws://";
+const protocol = "wss://";
 const port = 9090;
 const hostname = window.location.hostname;
 const pathname = "websocket"; // 后端的websocket路由
-if (window.location.protocol === "https:") protocol = "wss://";
+// if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
 const go = new Go();
 const wasm = fetch(new URL("../statics/wasm.wasm", import.meta.url));
