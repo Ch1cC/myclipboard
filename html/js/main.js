@@ -1,9 +1,11 @@
 import { Popover } from "bootstrap";
 import pako from "pako";
 
-let protocol = "ws://";
+const protocol = "wss://";
 const port = 9090;
-if (window.location.protocol === "https:") protocol = "wss://";
+const hostname = window.location.hostname;
+const pathname = "websocket"; // 后端的websocket路由
+// if (window.location.protocol === "https:") protocol = "wss://";
 let ws = {};
 const go = new Go();
 const wasm = fetch(new URL("../statics/wasm.wasm", import.meta.url));
@@ -332,11 +334,12 @@ function copy(event) {
 function connect_WebSocket(encryptedData) {
     ws = new WebSocket(
         protocol +
-            window.location.hostname +
+            hostname +
             ":" +
             port +
-            window.location.pathname +
-            `ws?token=${encryptedData}`
+            "/" +
+            pathname +
+            `?token=${encryptedData}`
     );
     ws.onmessage = function (e) {
         var reader = new FileReader();
@@ -352,7 +355,7 @@ function connect_WebSocket(encryptedData) {
         reader.readAsArrayBuffer(e.data);
     };
     ws.onopen = function (e) {
-        // console.log("开启了");
+        console.log("开启了");
     };
     ws.onerror = function (e) {
         // console.log(e)
