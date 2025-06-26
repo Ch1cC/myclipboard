@@ -15,7 +15,7 @@ go build
 ```
 
 ```text
-默认s启动在9090端口
+默认启动在9090端口
 ```
 
 ### ws package from
