@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"myclipboard/logx"
 	"time"
 )
 
@@ -58,13 +59,13 @@ func ConfigRandom() {
 func init() {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
-		fmt.Println("Error decoding PEM block")
+		logx.Logger.Println("Error decoding PEM block")
 		return
 	}
 
 	localPrivateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		fmt.Println("Error parsing private key:", err)
+		logx.Logger.Println("Error parsing private key:", err)
 		return
 	}
 	privateKey = localPrivateKey
@@ -73,19 +74,20 @@ func VerifyRsa(encryptedDataHex string) bool {
 	// 将十六进制格式的字符串解码为字节数组
 	encryptedData, err := hex.DecodeString(encryptedDataHex)
 	if err != nil {
-		fmt.Println("Error decoding hex string:", err)
+		logx.Logger.Println("Error decoding hex string:", err)
 		return false
 	}
 	decryptedData, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, encryptedData, nil)
 	if err != nil {
-		fmt.Println("Error decrypting data:", err)
+		logx.Logger.Println("Error decrypting data:", err)
 		return false
 	}
 	// 为了验证转换是否正确，可以将字节切片转换回int64
 	convertedBack := int64(binary.BigEndian.Uint64(decryptedData))
 	// 打印解密后的数据
-	// fmt.Println("Decrypted data:", convertedBack)
-
+	// logx.Logger.Println("Decrypted data:", convertedBack)
+	// 检查当前时间与解密后的时间戳之间的差异是否在100秒以内
+	fmt.Println("时间戳之间的差异", time.Now().Unix()-convertedBack)
 	return time.Now().Unix()-convertedBack < 10
 }
 
@@ -93,12 +95,12 @@ func VerifyRsa(encryptedDataHex string) bool {
 // func VerifyEcc(encryptedDataHex string) bool {
 // 	encryptedData, err := hex.DecodeString(encryptedDataHex)
 // 	if err != nil {
-// 		fmt.Println("Error decoding hex string:", err)
+// 		logx.Logger.Println("Error decoding hex string:", err)
 // 		return false
 // 	}
 // 	decryptedData, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, encryptedData, nil)
 // 	if err != nil {
-// 		fmt.Println("Error decrypting data:", err)
+// 		logx.Logger.Println("Error decrypting data:", err)
 // 		return false
 // 	}
 // 	return decryptedData != nil
@@ -111,7 +113,7 @@ func configECC() {
 	// 生成私钥
 	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
-		fmt.Println("Error generating private key:", err)
+		logx.Logger.Println("Error generating private key:", err)
 		return
 	}
 
@@ -127,11 +129,11 @@ func configECC() {
 	// 使用私钥对哈希值进行签名
 	signature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
 	if err != nil {
-		fmt.Println("Error signing:", err)
+		logx.Logger.Println("Error signing:", err)
 		return
 	}
 
 	// 使用公钥验证签名
 	valid := ecdsa.VerifyASN1(publicKey, hash[:], signature)
-	fmt.Println("Signature verified:", valid)
+	logx.Logger.Println("Signature verified:", valid)
 }

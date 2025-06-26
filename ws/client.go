@@ -2,12 +2,10 @@ package ws
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"myclipboard/config"
 	"myclipboard/convert"
+	"myclipboard/logx"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/gorilla/websocket"
@@ -21,7 +19,6 @@ var (
 	pingPeriod       = 9 * pongWait / 10 //周期54s
 	maxMsgSize int64 = 512               //消息最大长度
 	writeWait        = 10 * time.Second  //
-	loger      *log.Logger
 )
 var upgrader = websocket.Upgrader{
 	HandshakeTimeout: 2 * time.Second, //握手超时时间
@@ -29,22 +26,6 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize:  1024,            //写缓冲大小
 	CheckOrigin:      func(r *http.Request) bool { return true },
 	Error:            func(w http.ResponseWriter, r *http.Request, status int, reason error) {},
-}
-
-func init() {
-	dir := "./log"
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.Mkdir(dir, 0766)
-	}
-	file := "./log/" + time.Now().Format("2006-01-02") + ".log"
-	logFile, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
-	if err != nil {
-		fmt.Println(err)
-		panic(err)
-	}
-	loger = log.New(logFile, "", log.LstdFlags|log.LUTC)
-	// 将文件设置为loger作为输出
-	return
 }
 
 type Client struct {
@@ -57,7 +38,7 @@ func (client *Client) read() {
 	defer func() {
 		//hub中注销client
 		client.hub.unregister <- client
-		fmt.Printf("close connection to %s\n", client.conn.RemoteAddr().String())
+		logx.Logger.Printf("close connection to %s\n", client.conn.RemoteAddr().String())
 		//关闭websocket管道
 		client.conn.Close()
 	}()
@@ -82,7 +63,7 @@ func (client *Client) read() {
 		if err != nil {
 			//如果以意料之外的关闭状态关闭，就打印日志
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
-				fmt.Printf("read from websocket err: %v\n", err)
+				logx.Logger.Printf("read from websocket err: %v\n", err)
 			}
 			//ReadMessage失败，关闭websocket管道、注销client，退出
 			break
@@ -101,7 +82,7 @@ func (client *Client) write() {
 	defer func() {
 		//ticker不用就stop，防止协程泄漏
 		ticker.Stop()
-		fmt.Printf("close connection to %s\n", client.conn.RemoteAddr().String())
+		logx.Logger.Printf("close connection to %s\n", client.conn.RemoteAddr().String())
 		//给前端写数据失败，关闭连接
 		client.conn.Close()
 	}()
@@ -144,18 +125,19 @@ func (client *Client) write() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	token := r.FormValue("token")
+	// fmt.Println("token:", token)
 	if !config.VerifyRsa(token) {
 		remoteAddr, _ := getIP(r)
-		loger.Printf("connect to client %s\n", remoteAddr)
-		loger.Printf("错误的token %s \n", token)
+		logx.Logger.Printf("connect to client %s\n", remoteAddr)
+		logx.Logger.Printf("错误的token %s \n", token)
 		return
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Printf("upgrade error: %v\n", err)
+		logx.Logger.Printf("upgrade error: %v\n", err)
 		return
 	}
-	fmt.Printf("connect to client %s\n", conn.RemoteAddr().String())
+	logx.Logger.Printf("connect to client %s\n", conn.RemoteAddr().String())
 	//每来一个前端请求，就会创建一个client
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	//向hub注册client

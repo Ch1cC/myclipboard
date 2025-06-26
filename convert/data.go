@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"myclipboard/config"
+	"myclipboard/logx"
 	"sort"
 	"sync"
 	"time"
@@ -61,14 +61,14 @@ func BuildJson() []byte {
 	compressed.Reset()
 	// 创建一个gzip写入器，将数据写入到压缩缓冲区
 	if gzipWriter, err := gzip.NewWriterLevel(&compressed, gzip.NoCompression); err != nil {
-		fmt.Println("压缩数据时发生错误：", err)
+		logx.Logger.Println("压缩数据时发生错误：", err)
 	} else {
 		if _, err := gzipWriter.Write(jsonByte); err != nil {
-			fmt.Println("压缩数据时发生错误：", err)
+			logx.Logger.Println("压缩数据时发生错误：", err)
 		}
 		// 关闭gzip写入器，这样会将剩余的数据刷新到缓冲区
 		if err := gzipWriter.Close(); err != nil {
-			fmt.Println("关闭gzip写入器时发生错误：", err)
+			logx.Logger.Println("关闭gzip写入器时发生错误：", err)
 		}
 	}
 	return compressed.Bytes()
