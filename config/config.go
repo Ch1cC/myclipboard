@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/pem"
-	"fmt"
 	"math/big"
 	"myclipboard/logx"
 	"time"
@@ -87,7 +86,7 @@ func VerifyRsa(encryptedDataHex string) bool {
 	// 打印解密后的数据
 	// logx.Logger.Println("Decrypted data:", convertedBack)
 	// 检查当前时间与解密后的时间戳之间的差异是否在100秒以内
-	fmt.Println("时间戳之间的差异", time.Now().Unix()-convertedBack)
+	// fmt.Println("时间戳之间的差异", time.Now().Unix()-convertedBack)
 	return time.Now().Unix()-convertedBack < 10
 }
 

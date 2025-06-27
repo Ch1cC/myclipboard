@@ -2,7 +2,7 @@ import { Popover } from "bootstrap";
 import pako from "pako";
 
 const protocol = "wss://";
-const port = 9090;
+const port = 8443;
 const hostname = window.location.hostname;
 const pathname = "websocket"; // 后端的websocket路由
 // if (window.location.protocol === "https:") protocol = "wss://";

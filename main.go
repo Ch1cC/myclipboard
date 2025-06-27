@@ -19,7 +19,7 @@ var keyPath string
 
 func main() {
 	flag.DurationVar(&config.Duration, "duration", time.Minute*15, "过期时间间隔")
-	flag.IntVar(&port, "port", 9090, "端口")
+	flag.IntVar(&port, "port", 8443, "端口")
 	flag.StringVar(&crtPath, "crtPath", "./server.crt", "证书文件")
 	flag.StringVar(&keyPath, "keyPath", "./server.key", "证书密钥")
 	hub := ws.NewHub()
